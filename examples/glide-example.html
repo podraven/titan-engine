@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glide Data Grid + Titan Engine</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@glideapps/glide-data-grid@6.0.3/dist/index.css">
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f9f9f9; }
+        .sheet-container { background: white; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 15px; margin-bottom: 30px; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; font-size: 14px; }
+    </style>
+    <!-- Use an import map to cleanly load ES modules -->
+    
+    
+    
+    
+    
+    
+    
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "@glideapps/glide-data-grid": "https://esm.sh/@glideapps/glide-data-grid@6.0.3?external=react,react-dom",
+        "htm": "https://esm.sh/htm"
+      }
+    }
+    </script>
+
+
+
+
+
+
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- 
+      We don't need Babel if we use htm! 
+      It lets us write JSX-like syntax as template literals in native ES modules.
+    -->
+    
+    <script type="module">
+    import React, { useState, useEffect, useCallback, useMemo } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { DataEditor, GridCellKind } from '@glideapps/glide-data-grid';
+    import htm from 'htm';
+    import { initTitan } from '../titan.js';
+
+    // Bind htm to React.createElement
+    const html = htm.bind(React.createElement);
+
+    function getExcelColumn(i) {
+        let letter = '';
+        while (i >= 0) {
+            letter = String.fromCharCode(65 + (i % 26)) + letter;
+            i = Math.floor(i / 26) - 1;
+        }
+        return letter;
+    }
+
+    function Sheet({ name, sheetId, engine, rows, cols, updateTrigger }) {
+        const columns = useMemo(() => {
+            return Array.from({ length: cols }).map((_, i) => ({
+                title: getExcelColumn(i),
+                id: `col_${i}`,
+                width: 100
+            }));
+        }, [cols]);
+
+        const getCellContent = useCallback(([col, row]) => {
+            const sheet = engine.getSheet(sheetId);
+            const val = sheet.get({row, col}).display;
+            let displayData = val;
+            let data = window.cellInputs?.[sheetId]?.[row]?.[col] || displayData;
+
+            return {
+                kind: GridCellKind.Text,
+                allowOverlay: true,
+                displayData: displayData.toString(),
+                data: data.toString(),
+                readonly: false,
+            };
+        }, [engine, sheetId, updateTrigger]);
+
+        const onCellEdited = useCallback((cell, newValue) => {
+            const [col, row] = cell;
+            const val = newValue.data;
+            
+            if (!window.cellInputs[sheetId]) window.cellInputs[sheetId] = {};
+            if (!window.cellInputs[sheetId][row]) window.cellInputs[sheetId][row] = {};
+            window.cellInputs[sheetId][row][col] = val;
+
+            const sheet = engine.getSheet(sheetId);
+            sheet.set({row, col}, val);
+            window.triggerUpdate(); // trigger global update for cross-sheet references
+        }, [engine, sheetId]);
+
+        const onRowAppended = useCallback(() => {
+            window.appendRow(sheetId);
+        }, [sheetId]);
+
+        const onPaste = useCallback((target, values) => {
+            const [startCol, startRow] = target;
+            let needsUpdate = false;
+
+            let maxRowNeeded = startRow;
+            let maxColNeeded = startCol;
+            
+            let batchUpdates = [];
+
+            for (let i = 0; i < values.length; i++) {
+                let rowData = values[i];
+                
+                // If it's a CSV paste, Glide might not split commas correctly.
+                if (rowData.length === 1 && rowData[0].includes(',')) {
+                    rowData = rowData[0].split(',');
+                } else if (rowData.length === 1 && rowData[0].includes('	')) {
+                    rowData = rowData[0].split('	');
+                }
+
+                const r = startRow + i;
+                maxRowNeeded = Math.max(maxRowNeeded, r + 1);
+                maxColNeeded = Math.max(maxColNeeded, startCol + rowData.length);
+
+                if (!window.cellInputs[sheetId]) window.cellInputs[sheetId] = {};
+                if (!window.cellInputs[sheetId][r]) window.cellInputs[sheetId][r] = {};
+
+                for (let j = 0; j < rowData.length; j++) {
+                    const c = startCol + j;
+                    const val = rowData[j].trim();
+                    window.cellInputs[sheetId][r][c] = val;
+                    batchUpdates.push({ sheet: sheetId, cell: {row: r, col: c}, value: val });
+                    needsUpdate = true;
+                }
+            }
+
+            // Update dimensions in one go
+            if (maxRowNeeded > window.getSheetRows(sheetId) || maxColNeeded > window.getSheetCols(sheetId)) {
+                window.updateDimensions(sheetId, Math.max(maxRowNeeded, window.getSheetRows(sheetId)), Math.max(maxColNeeded, window.getSheetCols(sheetId)));
+            }
+
+            if (needsUpdate) {
+                // Use TitanJS high-level batching!
+                engine.setCells(batchUpdates);
+                window.triggerUpdate();
+            }
+            return true;
+        }, [engine, sheetId]);
+
+        const onDelete = useCallback((selection) => {
+            if (!selection || !selection.current || !selection.current.range) return;
+
+            let needsUpdate = false;
+            let batchUpdates = [];
+
+            const range = selection.current.range;
+            for (let r = range.y; r < range.y + range.height; r++) {
+                for (let c = range.x; c < range.x + range.width; c++) {
+                    if (window.cellInputs[sheetId] && window.cellInputs[sheetId][r]) {
+                        delete window.cellInputs[sheetId][r][c];
+                    }
+                    batchUpdates.push({ sheet: sheetId, cell: {row: r, col: c}, value: "" });
+                    needsUpdate = true;
+                }
+            }
+
+            if (needsUpdate) {
+                engine.setCells(batchUpdates);
+                window.triggerUpdate();
+            }
+        }, [engine, sheetId]);
+
+        return html`
+            <div className="sheet-container">
+                <div className="sheet-header">
+                    <span>${name}</span>
+                    <span style=${{ cursor: 'pointer', letterSpacing: '2px' }}>...</span>
+                </div>
+                <${DataEditor}
+                    columns=${columns}
+                    rows=${rows}
+                    getCellContent=${getCellContent}
+                    onCellEdited=${onCellEdited}
+                    onPaste=${onPaste}
+                    onDelete=${onDelete}
+                    getCellsForSelection=${true}
+                    rowMarkers="both"
+                    height=${200}
+                    width="100%"
+                    onRowAppended=${onRowAppended}
+                    trailingRowOptions=${{ sticky: false, tint: true, hint: "New row..." }}
+                />
+            </div>
+        `;
+    }
+
+    function App() {
+        const [engine, setEngine] = useState(null);
+        const [updateTrigger, setUpdateTrigger] = useState(0);
+        const [sheetDimensions, setSheetDimensions] = useState({
+            0: { rows: 5, cols: 5 },
+            1: { rows: 5, cols: 5 }
+        });
+
+        useEffect(() => {
+            window.cellInputs = {};
+            window.triggerUpdate = () => setUpdateTrigger(prev => prev + 1);
+            
+            // Allow tracking rows dynamically inside paste handler
+            window.sheetRowsData = { 0: 5, 1: 5 };
+            window.sheetColsData = { 0: 5, 1: 5 };
+            window.getSheetRows = (id) => window.sheetRowsData[id];
+            window.getSheetCols = (id) => window.sheetColsData[id];
+            
+            window.appendRow = (sheetId) => {
+                window.sheetRowsData[sheetId] += 1;
+                setSheetDimensions(prev => ({
+                    ...prev,
+                    [sheetId]: { ...prev[sheetId], rows: window.sheetRowsData[sheetId] }
+                }));
+            };
+
+            window.ensureCols = (sheetId, minCols) => {
+                if (window.sheetColsData[sheetId] < minCols) {
+                    window.sheetColsData[sheetId] = minCols;
+                    setSheetDimensions(prev => ({
+                        ...prev,
+                        [sheetId]: { ...prev[sheetId], cols: minCols }
+                    }));
+                }
+            };
+            
+            window.updateDimensions = (sheetId, rows, cols) => {
+                window.sheetRowsData[sheetId] = rows;
+                window.sheetColsData[sheetId] = cols;
+                setSheetDimensions(prev => ({
+                    ...prev,
+                    [sheetId]: { ...prev[sheetId], rows, cols }
+                }));
+            };
+
+            async function load() {
+                const Titan = await initTitan();
+                const e = new Titan();
+                
+                const sheet1 = e.addSheet("Sheet1"); // ID 0
+                const sheet2 = e.addSheet("Sheet2"); // ID 1
+                
+                // Initialize some data in Sheet1
+                if (!window.cellInputs[0]) window.cellInputs[0] = {};
+                if (!window.cellInputs[0][0]) window.cellInputs[0][0] = {};
+                if (!window.cellInputs[0][1]) window.cellInputs[0][1] = {};
+                if (!window.cellInputs[0][2]) window.cellInputs[0][2] = {};
+                
+                window.cellInputs[0][0][0] = "15";
+                window.cellInputs[0][1][0] = "25";
+                window.cellInputs[0][2][0] = "=SUM(A1:A2)";
+                
+                e.setCells([
+                    {sheet: 0, cell: "A1", value: "15"},
+                    {sheet: 0, cell: "A2", value: "25"},
+                    {sheet: 0, cell: "A3", value: "=SUM(A1:A2)"}
+                ]);
+
+                // Initialize some data in Sheet2 (Cross-sheet test)
+                if (!window.cellInputs[1]) window.cellInputs[1] = {};
+                if (!window.cellInputs[1][0]) window.cellInputs[1][0] = {};
+
+                window.cellInputs[1][0][0] = "=Sheet1!A3 * 2";
+                sheet2.set("A1", "=Sheet1!A3 * 2");
+
+                setEngine(e);
+            }
+            load();
+        }, []);
+
+        if (!engine) return html`<div style=${{ padding: '20px' }}>Loading Titan Engine...</div>`;
+
+        return html`
+            <div style=${{ padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>
+                <h1 style=${{ marginBottom: '30px' }}>Glide Data Grid + TitanJS</h1>
+                <div style=${{marginBottom: '20px'}}>
+                    <button onClick=${() => { engine.undo(); window.triggerUpdate(); }} style=${{padding: '5px 15px', marginRight: '10px'}}>Undo</button>
+                    <button onClick=${() => { engine.redo(); window.triggerUpdate(); }} style=${{padding: '5px 15px'}}>Redo</button>
+                </div>
+                <${Sheet} name="Sheet2" sheetId=${1} engine=${engine} rows=${sheetDimensions[1].rows} cols=${sheetDimensions[1].cols} updateTrigger=${updateTrigger} />
+                <${Sheet} name="Sheet1" sheetId=${0} engine=${engine} rows=${sheetDimensions[0].rows} cols=${sheetDimensions[0].cols} updateTrigger=${updateTrigger} />
+            </div>
+        `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${App} />`);
+    </script>
+
+    <div id="portal"></div>
+</body>
+</html>

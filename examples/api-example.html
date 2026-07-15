@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TitanJS High-Level API</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .log { background: #f0f0f0; padding: 10px; font-family: monospace; white-space: pre-wrap; height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>TitanJS High-Level API</h1>
+    <p>Check the console or the log below for event outputs.</p>
+    <button id="run">Run Batch Updates</button>
+    <button id="undo">Undo</button>
+    <button id="redo">Redo</button>
+    
+    <h3>Reactivity Log:</h3>
+    <div id="log" class="log"></div>
+
+    <script type="module">
+        import { initTitan } from '../titan.js';
+
+        const logEl = document.getElementById('log');
+        function log(msg) {
+            logEl.textContent += msg + '\n';
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function main() {
+            const Titan = await initTitan();
+            const engine = new Titan();
+            
+            // 1. Easy sheet management
+            const sheet1 = engine.addSheet("Sales");
+
+            // 4. Reactivity & Events
+            engine.onCellsChanged((changes) => {
+                log(`[Event] ${changes.length} cells updated:`);
+                changes.forEach(c => log(`   - ${c.sheetName}!${c.a1} = ${c.cell.display}`));
+            });
+
+            // 2. Cell Reading & Writing
+            log("Setting Sales!A1 to 100...");
+            sheet1.set("A1", 100);
+            
+            log("Setting Sales!B1 to =A1*2...");
+            sheet1.set("B1", "=A1*2");
+
+            document.getElementById('run').onclick = () => {
+                log("\nRunning Bulk Operations...");
+                // 3. Bulk Operations (Batch Manager)
+                sheet1.setRange("A2", [
+                    [10, "=A2*2"],
+                    [20, "=A3*2"],
+                    [30, "=A4*2"]
+                ]);
+            };
+
+            document.getElementById('undo').onclick = () => {
+                log("\nUndoing...");
+                engine.undo();
+            };
+
+            document.getElementById('redo').onclick = () => {
+                log("\nRedoing...");
+                engine.redo();
+            };
+        }
+        main();
+    </script>
+</body>
+</html>

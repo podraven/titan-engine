@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titan Engine - Full Feature Showcase</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 30px; background: #f4f7f6; color: #333; max-width: 900px; margin: auto; }
+        h1 { border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+        h2 { margin-top: 40px; color: #0066cc; }
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .row { display: flex; align-items: center; margin-bottom: 10px; }
+        .cell-group { margin-right: 20px; display: flex; align-items: center; }
+        label { font-weight: bold; margin-right: 5px; width: 40px; }
+        input[type="number"], input[type="text"] { width: 120px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .wide-input { width: 300px !important; font-family: monospace; }
+        .readonly { background: #eef; color: #004499; font-weight: bold; pointer-events: none; border: 1px solid #cce; }
+        .grid { display: grid; grid-template-columns: repeat(16, 40px); gap: 1px; background: #ddd; border: 1px solid #ccc; padding: 1px; width: max-content; margin-top: 15px; }
+        .grid-cell { background: white; height: 25px; font-size: 11px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .btn { padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #0055aa; }
+        .info { font-size: 0.9em; color: #666; margin-bottom: 15px; line-height: 1.5; }
+        
+        .struct-grid { display: grid; grid-template-columns: 80px 100px 100px; gap: 1px; background: #ccc; border: 1px solid #999; width: max-content;}
+        .struct-cell { background: white; padding: 5px; text-align: center;}
+        .struct-header { background: #e0e0e0; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Titan Engine V2 Showcase</h1>
+    <p>This is a unified demonstration of the Titan WebAssembly Spreadsheet Engine. Features progress from basic formula parsing to VLOOKUPs, zero-copy memory rendering, and structural mutations.</p>
+
+    <!-- SECTION 1 -->
+    <div class="section" id="sec1">
+        <h2>1. Basic Math & Formula Parsing</h2>
+        <div class="row">
+            <div class="cell-group"><label>A1:</label><input type="number" id="s1_a1" value="10"></div>
+            <div class="cell-group"><label>B1:</label><input type="number" id="s1_b1" value="5"></div>
+        </div>
+        <div class="row">
+            <div class="cell-group"><label>C1:</label><input type="text" id="s1_c1_form" class="wide-input" value="=-2^2 + A1 * B1"></div>
+            <div class="cell-group"><label>Res:</label><input type="text" id="s1_c1_res" class="readonly" readonly></div>
+        </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="sec2">
+        <h2>2. Advanced Standard Library (Lookups & Text)</h2>
+        <div class="info">Titan supports over 40 standard library functions including VLOOKUP, SUMIFS, and text manipulation.</div>
+        <div class="row">
+            <div class="cell-group"><label>A2:</label><input type="text" id="s2_a2" value="ID-1"></div>
+            <div class="cell-group"><label>B2:</label><input type="text" id="s2_b2" value="Apple"></div>
+        </div>
+        <div class="row">
+            <div class="cell-group"><label>A3:</label><input type="text" id="s2_a3" value="ID-2"></div>
+            <div class="cell-group"><label>B3:</label><input type="text" id="s2_b3" value="Banana"></div>
+        </div>
+        <div class="row">
+            <div class="cell-group" style="width: 100%;">
+                <label>VLOOKUP:</label>
+                <input type="text" id="s2_form" class="wide-input" value='=VLOOKUP("ID-2", A2:B3, 2, FALSE)'>
+                <label style="margin-left: 10px;">Res:</label>
+                <input type="text" id="s2_res" class="readonly" readonly>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="sec3">
+        <h2>3. Array Broadcasting & Spill Mechanics</h2>
+        <div class="row">
+            <div style="margin-right: 30px;">
+                <div><label>D1:</label><input type="number" id="s3_d1" value="10"></div>
+                <div><label>D2:</label><input type="number" id="s3_d2" value="20"></div>
+                <div><label>D3:</label><input type="number" id="s3_d3" value="30"></div>
+            </div>
+            <div>
+                <div class="row"><label>E1:</label><input type="text" id="s3_e1_form" class="wide-input" value="=D1:D3 * 2"></div>
+                <div class="row"><label>&#8627;</label><input type="text" id="s3_e1_res" class="readonly" readonly></div>
+                <div class="row"><label>&#8627;</label><input type="text" id="s3_e2_res" class="readonly" readonly></div>
+                <div class="row"><label>&#8627;</label><input type="text" id="s3_e3_res" class="readonly" readonly></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section" id="sec4">
+        <h2>4. Zero-Copy WebAssembly Boundary</h2>
+        <button class="btn" id="runZeroCopy">Fill Grid (Math + Zero Copy Read)</button>
+        <span id="zc_perf" style="margin-left: 15px; font-weight: bold; color: #0066cc;"></span>
+        <div class="grid" id="zc_grid"></div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section" id="sec5">
+        <h2>5. Structural Mutations & Formula Shifting</h2>
+        <div class="info">
+            Notice how Row 2 has a formula <code>=SUM(A1:A2)</code>. <br>
+            If you click "Insert Row at Row 1", the engine physically shifts A2 down to A3. <br>
+            Crucially, the <strong>AST also dynamically shifts</strong>, changing the formula to <code>=SUM(A1:A3)</code> under the hood, and re-evaluates.
+        </div>
+        <button class="btn" id="runInsert" style="margin-bottom: 10px;">Insert Row at Row 1</button>
+        <button class="btn" id="runPopulate" style="margin-bottom: 10px; margin-left: 10px;">Set New Row 1 = 50</button>
+        <button class="btn" id="runUndo" style="margin-bottom: 10px; margin-left: 10px; background-color: #e67e22;">Undo Insert</button>
+        <div class="struct-grid" id="struct_grid"></div>
+            <div class="struct-cell struct-header">Col A (Val)</div>
+            <div class="struct-cell struct-header">Col B (Type)</div>
+            
+            <div class="struct-cell struct-header">Row 0</div>
+            <div class="struct-cell" id="sm_r0_c0">10</div>
+            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r0_type">Value</div>
+            
+            <div class="struct-cell struct-header">Row 1</div>
+            <div class="struct-cell" id="sm_r1_c0">20</div>
+            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r1_type">Value</div>
+            
+            <div class="struct-cell struct-header">Row 2</div>
+            <div class="struct-cell" id="sm_r2_c0" style="font-weight: bold; color: #0066cc;">30</div>
+            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r2_type">=SUM(A1:A2)</div>
+            
+            <div class="struct-cell struct-header">Row 3</div>
+            <div class="struct-cell" id="sm_r3_c0"></div>
+            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r3_type"></div>
+            <div class="struct-cell struct-header">Row 4</div>
+            <div class="struct-cell" id="sm_r4_c0"></div>
+            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r4_type"></div>
+            
+            <div class="struct-cell struct-header">Row 5</div>
+            <div class="struct-cell" id="sm_r5_c0"></div>
+            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r5_type"></div>
+
+        </div>
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="section" id="sec6">
+        <h2>6. UI Delta Updates (Performance Polish)</h2>
+        <div class="info">
+            When you type in the grid, the engine only returns the exact coordinates of cells that changed. We map over this flat Uint32Array <code>[sheet, row, col...]</code> and selectively update the UI instead of re-rendering everything.
+        </div>
+        <div class="row">
+            <label>A4:</label><input type="number" id="s6_a4" value="10">
+            <label style="margin-left:20px;">B4:</label><input type="text" id="s6_b4" class="readonly" value="=A4*2" readonly>
+            <label style="margin-left:20px;">C4:</label><input type="text" id="s6_c4" class="readonly" value="=B4*3" readonly>
+        </div>
+        <p style="color:#0066cc; font-weight:bold;">Cells updated: <span id="s6_delta_log">None</span></p>
+    </div>
+
+    
+    
+    <script type="module">
+        import { initTitan, toA1 } from '../titan.js';
+        
+        async function run() {
+            const Titan = await initTitan();
+            const engine = new Titan();
+            
+            // Isolate sheets for each section
+            const sheet1 = engine.addSheet("Section1");
+            const sheet2 = engine.addSheet("Section2");
+            const sheet3 = engine.addSheet("Section3");
+            const sheet4 = engine.addSheet("Section4");
+            const sheet5 = engine.addSheet("Section5");
+            const sheet6 = engine.addSheet("Section6");
+
+            // ... SECTION 1 ...
+            const s1_a1 = document.getElementById('s1_a1');
+            const s1_b1 = document.getElementById('s1_b1');
+            const s1_c1_form = document.getElementById('s1_c1_form');
+            const s1_c1_res = document.getElementById('s1_c1_res');
+
+            function updateSec1() {
+                sheet1.set("A1", s1_a1.value || "0");
+                sheet1.set("B1", s1_b1.value || "0");
+                sheet1.set("C1", s1_c1_form.value);
+                s1_c1_res.value = sheet1.get("C1").display;
+            }
+            s1_a1.oninput = updateSec1; s1_b1.oninput = updateSec1; s1_c1_form.oninput = updateSec1;
+            updateSec1();
+
+            // ... SECTION 2 ...
+            const s2_a2 = document.getElementById('s2_a2');
+            const s2_b2 = document.getElementById('s2_b2');
+            const s2_a3 = document.getElementById('s2_a3');
+            const s2_b3 = document.getElementById('s2_b3');
+            const s2_form = document.getElementById('s2_form');
+            const s2_res = document.getElementById('s2_res');
+
+            function updateSec2() {
+                sheet2.set("A2", s2_a2.value);
+                sheet2.set("B2", s2_b2.value); 
+                sheet2.set("A3", s2_a3.value);
+                sheet2.set("B3", s2_b3.value); 
+                sheet2.set("A4", s2_form.value);
+                s2_res.value = sheet2.get("A4").display;
+            }
+            s2_a2.oninput = updateSec2; s2_b2.oninput = updateSec2; s2_a3.oninput = updateSec2; s2_b3.oninput = updateSec2; s2_form.oninput = updateSec2;
+            updateSec2();
+
+            // ... SECTION 3 ...
+            const s3_d1 = document.getElementById('s3_d1');
+            const s3_d2 = document.getElementById('s3_d2');
+            const s3_d3 = document.getElementById('s3_d3');
+            const s3_e1_form = document.getElementById('s3_e1_form');
+            const s3_e1_res = document.getElementById('s3_e1_res');
+            const s3_e2_res = document.getElementById('s3_e2_res');
+            const s3_e3_res = document.getElementById('s3_e3_res');
+
+            function updateSec3() {
+                sheet3.set("D1", s3_d1.value || "0"); 
+                sheet3.set("D2", s3_d2.value || "0"); 
+                sheet3.set("D3", s3_d3.value || "0"); 
+                
+                sheet3.set("E1", s3_e1_form.value); 
+                s3_e1_res.value = sheet3.get("E1").display;
+                s3_e2_res.value = sheet3.get("E2").display;
+                s3_e3_res.value = sheet3.get("E3").display;
+            }
+            s3_d1.oninput = updateSec3; s3_d2.oninput = updateSec3; s3_d3.oninput = updateSec3; s3_e1_form.oninput = updateSec3;
+            updateSec3();
+
+            // ... SECTION 4 (Zero Copy Viewport) ...
+            const zc_grid = document.getElementById('zc_grid');
+            const zc_cells = [];
+            for (let i = 0; i < 256; i++) {
+                const div = document.createElement('div');
+                div.className = 'grid-cell';
+                zc_grid.appendChild(div);
+                zc_cells.push(div);
+            }
+
+            const viewport = sheet4.createViewport();
+
+            document.getElementById('runZeroCopy').onclick = () => {
+                const start = performance.now();
+                engine.engine.begin_batch();
+                for(let r=0; r<16; r++) {
+                    for(let c=0; c<16; c++) {
+                        sheet4.set({row: 10+r, col: 10+c}, String((r+1) * (c+1)));
+                    }
+                }
+                engine.engine.end_batch();
+                
+                // Use the Viewport for ultra-fast reading
+                for (let r = 0; r < 16; r++) {
+                    for (let c = 0; c < 16; c++) {
+                        const cell = viewport.getCell(10+r, 10+c);
+                        const div = zc_cells[(r * 16) + c];
+                        if (cell.type === 1) div.innerText = cell.value;
+                        else div.innerText = "";
+                    }
+                }
+                document.getElementById('zc_perf').innerText = `${(performance.now() - start).toFixed(2)} ms`;
+            };
+
+            // --- SECTION 5 LOGIC (Structural Mutation + Formula Shifting) ---
+            sheet5.set("A1", "10.0");
+            sheet5.set("A2", "20.0");
+            sheet5.set("A3", "=SUM(A1:A2)");
+
+            let formulaRow = 2; // Track where the formula is for UI labels (0-indexed)
+            let actionStack = [];
+
+            function renderStructGrid() {
+                const grid = document.getElementById('struct_grid');
+                grid.innerHTML = `
+                    <div class="struct-cell struct-header">Grid</div>
+                    <div class="struct-cell struct-header">Col A (Val)</div>
+                    <div class="struct-cell struct-header">Col B (Type)</div>
+                `;
+                
+                let maxRow = Math.max(3, formulaRow + 1);
+                for(let r=0; r<=maxRow; r++) {
+                    let val = sheet5.get({row: r, col: 0}).display;
+                    grid.innerHTML += `
+                        <div class="struct-cell struct-header">Row ${r}</div>
+                        <div class="struct-cell" id="sm_r${r}_c0">${val === "" ? "" : val}</div>
+                        <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r${r}_type">${val === "" ? "" : "Value"}</div>
+                    `;
+                }
+                
+                // Show the formula dynamically shifting
+                let typeCell = document.getElementById(`sm_r${formulaRow}_type`);
+                let valCell = document.getElementById(`sm_r${formulaRow}_c0`);
+                if (typeCell && valCell) {
+                    typeCell.innerText = `=SUM(A1:A${formulaRow})`;
+                    valCell.style.fontWeight = 'bold';
+                    valCell.style.color = '#0066cc';
+                }
+            }
+            renderStructGrid();
+
+            document.getElementById('runInsert').onclick = () => {
+                sheet5.insertRow(1);
+                formulaRow += 1; 
+                actionStack.push('insert');
+                renderStructGrid();
+            };
+
+            document.getElementById('runPopulate').onclick = () => {
+                sheet5.set({row: 1, col: 0}, "50.0");
+                actionStack.push('set');
+                renderStructGrid();
+            };
+
+            document.getElementById('runUndo').onclick = () => {
+                if (actionStack.length === 0) return;
+                engine.undo();
+                let lastAction = actionStack.pop();
+                if (lastAction === 'insert') {
+                    formulaRow -= 1;
+                }
+                renderStructGrid();
+            };
+
+            // --- SECTION 6 ---
+            sheet6.set("A4", String(s6_a4.value)); 
+            sheet6.set("B4", "=A4*2");
+            sheet6.set("C4", "=B4*3");
+
+            s6_b4.value = sheet6.get("B4").display;
+            s6_c4.value = sheet6.get("C4").display;
+
+            // Subscribe to engine changes!
+            engine.onCellsChanged((changes) => {
+                let changedLog = [];
+                for (const change of changes) {
+                    if (change.sheetId === sheet6.id) {
+                        changedLog.push(`${change.a1}`);
+                        if (change.a1 === "B4") s6_b4.value = change.cell.display;
+                        if (change.a1 === "C4") s6_c4.value = change.cell.display;
+                    }
+                }
+                if (changedLog.length > 0) {
+                    log.innerText = changedLog.join(", ");
+                }
+            });
+
+            s6_a4.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value) || 0;
+                sheet6.set("A4", val); // This fires the onCellsChanged event above automatically!
+            });
+        }
+
+        run();
+    </script>
+
+
+</body>
+</html>

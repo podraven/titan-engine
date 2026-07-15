@@ -1,0 +1,21 @@
+{
+  "name": "titan-engine",
+  "version": "1.0.0",
+  "description": "High-performance WebAssembly spreadsheet engine",
+  "main": "titan.js",
+  "types": "titan.d.ts",
+  "type": "module",
+  "files": [
+    "titan.js",
+    "titan.d.ts",
+    "titan_wasm.js",
+    "titan_wasm.d.ts",
+    "titan_wasm_bg.wasm"
+  ],
+  "keywords": ["spreadsheet", "wasm", "rust", "excel"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/podraven/titan-engine.git"
+  }
+}
