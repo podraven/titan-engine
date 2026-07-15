@@ -113,25 +113,9 @@ const viewport = sheet1.createViewport();
 const { type, value } = viewport.getCell(150, 20); 
 ```
 
-## Development
+## Examples
 
-Compile to WebAssembly:
-```bash
-cd titan-wasm
-wasm-pack build --target web --release
-```
+Check out the live interactive examples included in this repository:
 
-Run the Rust test suite:
-```bash
-cd titan-core
-cargo test
-```
-
-Serve the browser examples:
-```bash
-python3 -m http.server 8000
-```
-
-Available examples:
-- **`http://localhost:8000/examples/index.html`** - Basic parsing, zero-copy memory reads, and delta UI repainting.
-- **`http://localhost:8000/examples/glide-example.html`** - A complete React-based spreadsheet UI built with Glide Data Grid. It supports cross-sheet references, massive CSV pasting (using the `begin_batch` API), and infinite dynamic grid expansion without freezing the main thread.
+- **[Basic Example](examples/basic-example.html)** - Basic parsing, zero-copy memory reads, formula recalculations, and structural mutations.
+- **[Glide Data Grid Integration](examples/glide-example.html)** - A complete React-based spreadsheet UI built with Glide Data Grid. It supports cross-sheet references, massive CSV pasting (via the `O(1)` Batch Manager API), and infinite dynamic grid expansion without freezing the main thread.
