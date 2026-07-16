@@ -3,16 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TitanJS High-Level API</title>
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    <title>Titan Engine Examples</title>
+
     <style>
         :root {
             --bg: #ffffff;
@@ -37,7 +29,9 @@
         h1 { font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 32px; }
         h2 { font-size: 14px; margin-top: 32px; margin-bottom: 16px; }
         
-        .section, .card, .sheet-container { margin-bottom: 32px; border: 1px solid var(--border); padding: 24px; }
+        .section, .sheet-container { 
+            margin-bottom: 40px; 
+        }
         
         a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
@@ -104,74 +98,27 @@
     </style>
 </head>
 <body>
-    <a href="index.html" style="display: inline-block; margin-bottom: 20px; color: var(--muted-fg); text-decoration: none; ">&larr; Back to Examples Page</a>
-    <h1>TitanJS High-Level API</h1>
-    <p>Check the console or the log below for event outputs.</p>
-    <button id="run">Run Batch Updates</button>
-    <button id="undo">Undo</button>
-    <button id="redo">Redo</button>
+    <a href="../index.html" style="display: inline-block; margin-bottom: 24px; color: var(--muted-fg); text-decoration: none;">&larr; Back to Main Page</a>
+    <h1>Titan Engine Examples</h1>
+    <p style="color: var(--fg); margin-bottom: 32px;">Explore the capabilities of the Titan WebAssembly spreadsheet engine.</p>
     
-    <h3>Reactivity Log:</h3>
-    <div id="log" class="log"></div>
-
-    <script type="module">
-        import { initTitan } from '../titan.js';
-
-        const logEl = document.getElementById('log');
-        function log(msg) {
-            logEl.textContent += msg + '\n';
-            logEl.scrollTop = logEl.scrollHeight;
-        }
-
-        async function main() {
-            const Titan = await initTitan();
-            const engine = new Titan();
-            
-            // 1. Easy sheet management
-            const sheet1 = engine.addSheet("Sales");
-
-            // 4. Reactivity & Events
-            engine.onCellsChanged((changes) => {
-                log(`[Event] ${changes.length} cells updated:`);
-                changes.forEach(c => log(`   - ${c.sheetName}!${c.a1} = ${c.cell.display}`));
-            });
-
-            // 2. Cell Reading & Writing
-            log("Setting Sales!A1 to 100...");
-            sheet1.set("A1", 100);
-            
-            log("Setting Sales!B1 to =A1*2...");
-            sheet1.set("B1", "=A1*2");
-
-            document.getElementById('run').onclick = () => {
-                log("\nRunning Bulk Operations...");
-                // 3. Bulk Operations (Batch Manager)
-                sheet1.setRange("A2", [
-                    [10, "=A2*2"],
-                    [20, "=A3*2"],
-                    [30, "=A4*2"]
-                ]);
-            };
-
-            document.getElementById('undo').onclick = () => {
-                log("\nUndoing...");
-                try {
-                    engine.undo();
-                } catch (e) {
-                    log(`Error: ${e}`);
-                }
-            };
-
-            document.getElementById('redo').onclick = () => {
-                log("\nRedoing...");
-                try {
-                    engine.redo();
-                } catch (e) {
-                    log(`Error: ${e}`);
-                }
-            };
-        }
-        main();
-    </script>
+    <ul style="list-style-type: none; padding: 0; margin: 0;">
+        <li style="margin-bottom: 16px; border: 1px solid var(--border); padding: 16px;">
+            <a href="basic-example.html" style="font-size: 14px;">Basic Example</a>
+            <div style="color: var(--muted-fg); margin-top: 4px;">Basic parsing, zero-copy memory reads, formula recalculations, and structural mutations.</div>
+        </li>
+        <li style="margin-bottom: 16px; border: 1px solid var(--border); padding: 16px;">
+            <a href="glide-example.html" style="font-size: 14px;">Glide Data Grid Integration</a>
+            <div style="color: var(--muted-fg); margin-top: 4px;">A complete React-based spreadsheet UI built with Glide Data Grid. Demonstrates cross-sheet references, native undo/redo, and massive CSV pasting.</div>
+        </li>
+        <li style="margin-bottom: 16px; border: 1px solid var(--border); padding: 16px;">
+            <a href="benchmark.html" style="font-size: 14px;">Performance Benchmark</a>
+            <div style="color: var(--muted-fg); margin-top: 4px;">A head-to-head performance benchmark comparing Titan to HyperFormula across 10 extreme scenarios.</div>
+        </li>
+        <li style="margin-bottom: 16px; border: 1px solid var(--border); padding: 16px;">
+            <a href="api-example.html" style="font-size: 14px;">TitanJS API</a>
+            <div style="color: var(--muted-fg); margin-top: 4px;">A demonstration of the high-level TitanJS reactive API and event subscription model.</div>
+        </li>
+    </ul>
 </body>
 </html>

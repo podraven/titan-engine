@@ -4,29 +4,122 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Titan Engine - Full Feature Showcase</title>
+    
+    
+    
+    
+    
+    
+    
+    
+    
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 30px; background: #f4f7f6; color: #333; max-width: 900px; margin: auto; }
-        h1 { border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
-        h2 { margin-top: 40px; color: #0066cc; }
-        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .row { display: flex; align-items: center; margin-bottom: 10px; }
-        .cell-group { margin-right: 20px; display: flex; align-items: center; }
-        label { font-weight: bold; margin-right: 5px; width: 40px; }
-        input[type="number"], input[type="text"] { width: 120px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        .wide-input { width: 300px !important; font-family: monospace; }
-        .readonly { background: #eef; color: #004499; font-weight: bold; pointer-events: none; border: 1px solid #cce; }
-        .grid { display: grid; grid-template-columns: repeat(16, 40px); gap: 1px; background: #ddd; border: 1px solid #ccc; padding: 1px; width: max-content; margin-top: 15px; }
-        .grid-cell { background: white; height: 25px; font-size: 11px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .btn { padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn:hover { background: #0055aa; }
-        .info { font-size: 0.9em; color: #666; margin-bottom: 15px; line-height: 1.5; }
+        :root {
+            --bg: #ffffff;
+            --fg: #333333;
+            --muted: #f9f9f9;
+            --muted-fg: #888888;
+            --border: #eaeaea;
+            --accent: #0066cc;
+        }
         
-        .struct-grid { display: grid; grid-template-columns: 80px 100px 100px; gap: 1px; background: #ccc; border: 1px solid #999; width: max-content;}
-        .struct-cell { background: white; padding: 5px; text-align: center;}
-        .struct-header { background: #e0e0e0; font-weight: bold; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--fg);
+            background: var(--bg);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3 { font-weight: normal; margin: 0; color: #111; }
+        h1 { font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 32px; }
+        h2 { font-size: 14px; margin-top: 32px; margin-bottom: 16px; }
+        
+        .section, .card, .sheet-container { margin-bottom: 32px; border: 1px solid var(--border); padding: 24px; }
+        
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        .btn, button {
+            background: transparent;
+            border: 1px solid #ccc;
+            color: var(--fg);
+            padding: 4px 12px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: border-color 0.1s;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .btn:hover, button:hover { border-color: var(--fg); }
+        .btn:disabled, button:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border); }
+        
+        .btn-secondary { border-color: #ccc; }
+        
+        input[type="number"], input[type="text"] {
+            font-family: inherit;
+            font-size: 12px;
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            background: var(--bg);
+            color: var(--fg);
+            width: 120px;
+            box-sizing: border-box;
+            transition: border-color 0.1s;
+        }
+        input:focus { outline: none; border-color: var(--fg); }
+        input.readonly { background: var(--muted); color: var(--muted-fg); border-color: var(--border); }
+        
+        p, .info { color: var(--muted-fg); margin-bottom: 16px; }
+        
+        /* Table Styles (Benchmark) */
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; }
+        th, td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+        th { font-weight: normal; color: var(--muted-fg); }
+        .winner { color: #2e8b57; }
+        .loser { color: #b22222; }
+        
+        /* Logs */
+        .log { background: var(--muted); padding: 16px; border: 1px solid var(--border); overflow-y: auto; height: 200px; font-size: 12px; color: var(--fg); white-space: pre-wrap; }
+        
+        /* Basic Example Specific */
+        .row { display: flex; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 12px; }
+        .cell-group { display: flex; align-items: center; gap: 8px;}
+        label { font-size: 12px; color: var(--muted-fg); }
+        .wide-input { width: 280px !important; }
+        
+        .grid { display: grid; grid-template-columns: repeat(16, 40px); gap: 1px; background: var(--border); border: 1px solid var(--border); padding: 1px; width: max-content; margin-top: 16px; }
+        .grid-cell { background: var(--bg); height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 11px; }
+        
+        .struct-grid { display: grid; grid-template-columns: 80px 100px 140px; gap: 1px; background: var(--border); border: 1px solid var(--border); width: max-content; margin-top: 16px; }
+        .struct-cell { background: var(--bg); padding: 6px 8px; text-align: center; font-size: 12px; }
+        .struct-header { background: var(--muted); color: var(--muted-fg); }
+        
+        /* Glide Example Specific */
+        .sheet-header { font-size: 14px; font-weight: normal; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; color: #111; }
+        .header-controls button { margin-left: 8px; margin-bottom: 0; }
     </style>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@glideapps/glide-data-grid@6.0.3/dist/index.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "@glideapps/glide-data-grid": "https://esm.sh/@glideapps/glide-data-grid@6.0.3?external=react,react-dom",
+        "htm": "https://esm.sh/htm"
+      }
+    }
+    </script>
 </head>
 <body>
+    <a href="index.html" style="display: inline-block; margin-bottom: 20px; color: var(--muted-fg); text-decoration: none; ">&larr; Back to Examples Page</a>
 
     <h1>Titan Engine V2 Showcase</h1>
     <p>This is a unified demonstration of the Titan WebAssembly Spreadsheet Engine. Features progress from basic formula parsing to VLOOKUPs, zero-copy memory rendering, and structural mutations.</p>
@@ -104,33 +197,8 @@
         <button class="btn" id="runPopulate" style="margin-bottom: 10px; margin-left: 10px;">Set New Row 1 = 50</button>
         <button class="btn" id="runUndo" style="margin-bottom: 10px; margin-left: 10px; background-color: #e67e22;">Undo Insert</button>
         <div class="struct-grid" id="struct_grid"></div>
-            <div class="struct-cell struct-header">Col A (Val)</div>
-            <div class="struct-cell struct-header">Col B (Type)</div>
-            
-            <div class="struct-cell struct-header">Row 0</div>
-            <div class="struct-cell" id="sm_r0_c0">10</div>
-            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r0_type">Value</div>
-            
-            <div class="struct-cell struct-header">Row 1</div>
-            <div class="struct-cell" id="sm_r1_c0">20</div>
-            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r1_type">Value</div>
-            
-            <div class="struct-cell struct-header">Row 2</div>
-            <div class="struct-cell" id="sm_r2_c0" style="font-weight: bold; color: #0066cc;">30</div>
-            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r2_type">=SUM(A1:A2)</div>
-            
-            <div class="struct-cell struct-header">Row 3</div>
-            <div class="struct-cell" id="sm_r3_c0"></div>
-            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r3_type"></div>
-            <div class="struct-cell struct-header">Row 4</div>
-            <div class="struct-cell" id="sm_r4_c0"></div>
-            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r4_type"></div>
-            
-            <div class="struct-cell struct-header">Row 5</div>
-            <div class="struct-cell" id="sm_r5_c0"></div>
-            <div class="struct-cell" style="font-size: 0.8em; color: #888;" id="sm_r5_type"></div>
+    </div>
 
-        </div>
     </div>
 
     <!-- SECTION 6 -->
@@ -139,18 +207,14 @@
         <div class="info">
             When you type in the grid, the engine only returns the exact coordinates of cells that changed. We map over this flat Uint32Array <code>[sheet, row, col...]</code> and selectively update the UI instead of re-rendering everything.
         </div>
-        <div class="row">
-            <label>A4:</label><input type="number" id="s6_a4" value="10">
-            <label style="margin-left:20px;">B4:</label><input type="text" id="s6_b4" class="readonly" value="=A4*2" readonly>
-            <label style="margin-left:20px;">C4:</label><input type="text" id="s6_c4" class="readonly" value="=B4*3" readonly>
-        </div>
-        <p style="color:#0066cc; font-weight:bold;">Cells updated: <span id="s6_delta_log">None</span></p>
+        <div id="mini-grid-root"></div>
+        <p style="color: var(--muted-fg); margin-top: 16px;">Cells updated: <span id="s6_delta_log" style="color: var(--fg); font-weight: bold;">None</span></p>
     </div>
 
     
     
     <script type="module">
-        import { initTitan, toA1 } from '../titan.js';
+        import { initTitan } from '../titan.js';
         
         async function run() {
             const Titan = await initTitan();
@@ -173,8 +237,12 @@
             function updateSec1() {
                 sheet1.set("A1", s1_a1.value || "0");
                 sheet1.set("B1", s1_b1.value || "0");
-                sheet1.set("C1", s1_c1_form.value);
-                s1_c1_res.value = sheet1.get("C1").display;
+                try {
+                    sheet1.set("C1", s1_c1_form.value);
+                    s1_c1_res.value = sheet1.get("C1").display;
+                } catch(e) {
+                    s1_c1_res.value = "Error";
+                }
             }
             s1_a1.oninput = updateSec1; s1_b1.oninput = updateSec1; s1_c1_form.oninput = updateSec1;
             updateSec1();
@@ -192,8 +260,12 @@
                 sheet2.set("B2", s2_b2.value); 
                 sheet2.set("A3", s2_a3.value);
                 sheet2.set("B3", s2_b3.value); 
-                sheet2.set("A4", s2_form.value);
-                s2_res.value = sheet2.get("A4").display;
+                try {
+                    sheet2.set("A4", s2_form.value);
+                    s2_res.value = sheet2.get("A4").display;
+                } catch(e) {
+                    s2_res.value = "Error";
+                }
             }
             s2_a2.oninput = updateSec2; s2_b2.oninput = updateSec2; s2_a3.oninput = updateSec2; s2_b3.oninput = updateSec2; s2_form.oninput = updateSec2;
             updateSec2();
@@ -212,10 +284,14 @@
                 sheet3.set("D2", s3_d2.value || "0"); 
                 sheet3.set("D3", s3_d3.value || "0"); 
                 
-                sheet3.set("E1", s3_e1_form.value); 
-                s3_e1_res.value = sheet3.get("E1").display;
-                s3_e2_res.value = sheet3.get("E2").display;
-                s3_e3_res.value = sheet3.get("E3").display;
+                try {
+                    sheet3.set("E1", s3_e1_form.value); 
+                    s3_e1_res.value = sheet3.get("E1").display;
+                    s3_e2_res.value = sheet3.get("E2").display;
+                    s3_e3_res.value = sheet3.get("E3").display;
+                } catch(e) {
+                    s3_e1_res.value = "Error";
+                }
             }
             s3_d1.oninput = updateSec3; s3_d2.oninput = updateSec3; s3_d3.oninput = updateSec3; s3_e1_form.oninput = updateSec3;
             updateSec3();
@@ -234,13 +310,17 @@
 
             document.getElementById('runZeroCopy').onclick = () => {
                 const start = performance.now();
-                engine.engine.begin_batch();
+                
+                // Build a 2D array and use the high-level setRange API
+                const data = [];
                 for(let r=0; r<16; r++) {
+                    const row = [];
                     for(let c=0; c<16; c++) {
-                        sheet4.set({row: 10+r, col: 10+c}, String((r+1) * (c+1)));
+                        row.push(String((r+1) * (c+1)));
                     }
+                    data.push(row);
                 }
-                engine.engine.end_batch();
+                sheet4.setRange({row: 10, col: 10}, data);
                 
                 // Use the Viewport for ultra-fast reading
                 for (let r = 0; r < 16; r++) {
@@ -306,46 +386,115 @@
 
             document.getElementById('runUndo').onclick = () => {
                 if (actionStack.length === 0) return;
-                engine.undo();
-                let lastAction = actionStack.pop();
-                if (lastAction === 'insert') {
-                    formulaRow -= 1;
+                try {
+                    engine.undo();
+                    let lastAction = actionStack.pop();
+                    if (lastAction === 'insert') {
+                        formulaRow -= 1;
+                    }
+                    renderStructGrid();
+                } catch(e) {
+                    console.warn(e);
                 }
-                renderStructGrid();
             };
 
             // --- SECTION 6 ---
-            sheet6.set("A4", String(s6_a4.value)); 
-            sheet6.set("B4", "=A4*2");
-            sheet6.set("C4", "=B4*3");
+            const logEl = document.getElementById('s6_delta_log');
 
-            s6_b4.value = sheet6.get("B4").display;
-            s6_c4.value = sheet6.get("C4").display;
+            // Initialize sheet
+            sheet6.set("A1", "10");
+            sheet6.set("B1", "=A1*2");
+            sheet6.set("C1", "=B1*3");
+            sheet6.set("A2", "50"); // Independent
 
-            // Subscribe to engine changes!
-            engine.onCellsChanged((changes) => {
-                let changedLog = [];
-                for (const change of changes) {
-                    if (change.sheetId === sheet6.id) {
-                        changedLog.push(`${change.a1}`);
-                        if (change.a1 === "B4") s6_b4.value = change.cell.display;
-                        if (change.a1 === "C4") s6_c4.value = change.cell.display;
-                    }
-                }
-                if (changedLog.length > 0) {
-                    log.innerText = changedLog.join(", ");
-                }
-            });
+            // Render React Mini Grid
+            import('react').then(React => {
+                import('react-dom/client').then(({ createRoot }) => {
+                    import('@glideapps/glide-data-grid').then(({ DataEditor, GridCellKind }) => {
+                        import('htm').then(htmModule => {
+                            const htm = htmModule.default;
+                            const htmlReact = htm.bind(React.createElement);
+                            
+                            function MiniGrid() {
+                                const [updateTrigger, setUpdateTrigger] = React.useState(0);
+                                const cellInputs = React.useRef({
+                                    0: {0: "10", 1: "=A1*2", 2: "=B1*3"},
+                                    1: {0: "50"}
+                                });
 
-            s6_a4.addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value) || 0;
-                sheet6.set("A4", val); // This fires the onCellsChanged event above automatically!
+                                React.useEffect(() => {
+                                    const unsubscribe = engine.onCellsChanged((changes) => {
+                                        let changedLog = [];
+                                        let needsUpdate = false;
+                                        for (const change of changes) {
+                                            if (change.sheetId === sheet6.id) {
+                                                changedLog.push(change.a1);
+                                                needsUpdate = true;
+                                            }
+                                        }
+                                        if (changedLog.length > 0) {
+                                            logEl.innerText = changedLog.join(", ");
+                                        }
+                                        if (needsUpdate) {
+                                            setUpdateTrigger(prev => prev + 1);
+                                        }
+                                    });
+                                    return () => unsubscribe();
+                                }, []);
+
+                                const columns = React.useMemo(() => [
+                                    { title: "A", id: "col_0", width: 80 },
+                                    { title: "B", id: "col_1", width: 80 },
+                                    { title: "C", id: "col_2", width: 80 }
+                                ], []);
+
+                                const getCellContent = React.useCallback(([col, row]) => {
+                                    const cell = sheet6.get({row, col});
+                                    let data = cellInputs.current[row]?.[col] || cell.display;
+                                    return {
+                                        kind: GridCellKind.Text,
+                                        allowOverlay: true,
+                                        displayData: cell.display.toString(),
+                                        data: data.toString(),
+                                        readonly: false,
+                                    };
+                                }, [updateTrigger]);
+
+                                const onCellEdited = React.useCallback((cell, newValue) => {
+                                    const [col, row] = cell;
+                                    const val = newValue.data;
+                                    if (!cellInputs.current[row]) cellInputs.current[row] = {};
+                                    cellInputs.current[row][col] = val;
+                                    sheet6.set({row, col}, val);
+                                }, []);
+
+                                return htmlReact`
+                                    <div style=${{ border: '1px solid var(--border)', width: 'max-content', marginTop: '16px' }}>
+                                        <${DataEditor}
+                                            columns=${columns}
+                                            rows=${3}
+                                            getCellContent=${getCellContent}
+                                            onCellEdited=${onCellEdited}
+                                            rowMarkers="none"
+                                            height=${150}
+                                            width=${242}
+                                        />
+                                    </div>
+                                `;
+                            }
+
+                            const root = createRoot(document.getElementById('mini-grid-root'));
+                            root.render(htmlReact`<${MiniGrid} />`);
+                        });
+                    });
+                });
             });
         }
-
+        
         run();
     </script>
 
 
+    <div id="portal" style="position: fixed; top: 0; left: 0; z-index: 9999;"></div>
 </body>
 </html>

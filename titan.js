@@ -45,14 +45,15 @@ export class Titan {
         this.listeners = new Set();
     }
 
+    
     addSheet(name) {
-        this.engine.add_sheet(name);
-        const id = this.sheetsById.size;
+        const id = this.engine.add_sheet(name);
         const sheet = new Sheet(this, id, name);
         this.sheetsById.set(id, sheet);
         this.sheetsByName.set(name, sheet);
         return sheet;
     }
+
 
     getSheet(nameOrId) {
         if (typeof nameOrId === 'number') return this.sheetsById.get(nameOrId) || null;
@@ -153,7 +154,7 @@ export class Sheet {
             }
         } finally {
             const deltas = this.titan.engine.end_batch();
-            this._triggerChange(deltas);
+            this.titan._triggerChange(deltas);
         }
     }
 

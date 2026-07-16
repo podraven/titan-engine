@@ -19,11 +19,16 @@ Formulas don't evaluate the AST directly. They compile to bytecode and run on a 
 Ranges are deliberately capped. A formula shouldn't be able to allocate half a gigabyte and crash the browser just because someone typed `=A:A * 2`. Lookup and aggregation functions like `VLOOKUP` and `SUMIFS` use lazy `RangeRef` pointers instead of materializing full arrays, which means they can scan large columns without blowing up the VM stack.
 
 ### Standard Library
-The engine includes about 40 common functions:
-- **Math & Logic:** `SUM`, `AVERAGE`, `MIN`, `MAX`, `IF`, `IFERROR`, `ROUND`, `AND`, `OR`
-- **Lookup & Aggregation:** `VLOOKUP`, `HLOOKUP`, `INDEX`, `MATCH`, `XLOOKUP`, `SUMIF`, `COUNTIFS`
-- **Text:** `CONCATENATE`, `TEXTJOIN`, `LEFT`, `RIGHT`, `MID`, `SUBSTITUTE`
-- **Dates (Excel 1900-system):** `TODAY`, `NOW`, `DATE`, `EOMONTH`, `DATEDIF`
+Titan includes 42 built-in functions. Lookup functions use lazy evaluation to avoid materializing large arrays.
+
+- **Math:** `SUM`, `AVERAGE`, `MIN`, `MAX`, `ROUND`, `ROUNDUP`, `ROUNDDOWN`, `ABS`, `MOD`
+- **Logic:** `IF`, `IFERROR`, `AND`, `OR`, `NOT`
+- **Lookup & Reference:** `VLOOKUP`, `HLOOKUP`, `INDEX`, `MATCH`, `XLOOKUP`
+- **Conditional Aggregation:** `COUNT`, `COUNTA`, `COUNTBLANK`, `SUMIF`, `SUMIFS`, `COUNTIF`, `COUNTIFS`, `AVERAGEIF`, `AVERAGEIFS`
+- **Text:** `CONCATENATE`, `TEXTJOIN`, `LEFT`, `RIGHT`, `MID`, `LEN`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `TRIM`
+- **Dates (Excel 1900-system):** `TODAY`, `NOW`, `DATE`, `YEAR`, `MONTH`, `DAY`, `EOMONTH`, `DATEDIF`
+
+*(It also fully supports inline operators: `+`, `-`, `*`, `/`, `^`, `&`, `=`, `<`, `>`)*
 
 ### Dependency tracking
 Dependencies are recalculated using Kahn's algorithm. If you create a circular reference, the engine yields a `#CYCLE!` error instead of freezing the main thread.
@@ -41,7 +46,7 @@ The frontend creates typed array views over WASM memory instead. Reading values 
 
 ## Usage
 
-We provide a high-level JavaScript wrapper (`TitanJS`) that abstracts away the WebAssembly pointers, provides A1 notation, and introduces a reactive, event-driven subscription model perfectly aligned with React, Vue, and vanilla JS.
+The `TitanJS` wrapper abstracts the WebAssembly pointers and provides A1 notation. It includes an event subscription model for UI updates.
 
 ### Initialization & Sheet Management
 
@@ -80,7 +85,7 @@ engine.onCellsChanged((changes) => {
 ```
 
 ### Bulk Operations (The Batch Manager)
-If you are pasting a CSV or loading a database state, `TitanJS` handles the `O(1)` batch mode internally. It safely expands boundaries, suspends the topological graph, and fires exactly *one* reactive event at the end.
+For bulk updates (like pasting a CSV), `TitanJS` uses a batch mode. This suspends the topological sort during insertion and recalculates the graph once at the end.
 
 ```javascript
 // Paste a 2D array starting at A1
@@ -104,7 +109,7 @@ const cell = sheet1.get("A1");
 console.log(cell.display); // "15", "Banana", "#DIV/0!"
 ```
 
-For rendering massive grids at 60fps, use the `Viewport` class. It safely wraps the WASM buffer, abstracts the modulo chunking math, and automatically re-acquires pointers if `memory.grow()` detaches them.
+The `Viewport` class provides a zero-copy read mechanism. It abstracts the chunk math and re-acquires pointers if WebAssembly calls `memory.grow()`.
 
 ```javascript
 const viewport = sheet1.createViewport();
@@ -118,4 +123,5 @@ const { type, value } = viewport.getCell(150, 20);
 Check out the live interactive examples included in this repository:
 
 - **[Basic Example](examples/basic-example.html)** - Basic parsing, zero-copy memory reads, formula recalculations, and structural mutations.
-- **[Glide Data Grid Integration](examples/glide-example.html)** - A complete React-based spreadsheet UI built with Glide Data Grid. It supports cross-sheet references, massive CSV pasting (via the `O(1)` Batch Manager API), and infinite dynamic grid expansion without freezing the main thread.
+- **[Glide Data Grid Integration](examples/glide-example.html)** - A React spreadsheet UI using Glide Data Grid. Demonstrates cross-sheet references, bulk CSV pasting, and dynamic grid expansion.
+- **[Performance Benchmark](examples/benchmark.html)** - A head-to-head performance benchmark comparing Titan to HyperFormula across memory allocation, lazy evaluation, and structural mutations.
