@@ -1,6 +1,6 @@
 {
   "name": "titan-engine",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "High-performance WebAssembly spreadsheet engine",
   "main": "titan.js",
   "types": "titan.d.ts",
@@ -13,6 +13,7 @@
     "titan_wasm_bg.wasm"
   ],
   "keywords": ["spreadsheet", "wasm", "rust", "excel"],
+  "author": "podraven",
   "license": "MIT",
   "repository": {
     "type": "git",
