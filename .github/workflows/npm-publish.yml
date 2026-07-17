@@ -1,6 +1,7 @@
 name: Publish to NPM
 
 # Trigger this workflow whenever new code is pushed to the main branch
+# versioning handled by rust source
 on:
   push:
     branches:
