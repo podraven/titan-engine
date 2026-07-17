@@ -6,44 +6,6 @@ It exists because I wanted something that could recalculate large sheets without
 
 The project borrows ideas from existing spreadsheet engines, but it prioritizes browser performance over strict 1:1 compatibility with Excel internals.
 
-## Design Decisions
-
-### Data layout
-Instead of representing cells as JS objects, memory is split into fixed 32×32 chunks. Each chunk stores types and payloads in separate arrays (Struct-of-Arrays).
-
-That layout is less convenient to work with than objects, but it keeps memory contiguous and makes sequential scans cheap. I tried larger chunk sizes, but cache behavior got worse before memory usage got better, so 32×32 ended up being the best compromise.
-
-### Execution & Lazy Evaluation
-Formulas don't evaluate the AST directly. They compile to bytecode and run on a stack-based VM.
-
-Ranges are deliberately capped. A formula shouldn't be able to allocate half a gigabyte and crash the browser just because someone typed `=A:A * 2`. Lookup and aggregation functions like `VLOOKUP` and `SUMIFS` use lazy `RangeRef` pointers instead of materializing full arrays, which means they can scan large columns without blowing up the VM stack.
-
-### Standard Library
-Titan includes 42 built-in functions. Lookup functions use lazy evaluation to avoid materializing large arrays.
-
-- **Math:** `SUM`, `AVERAGE`, `MIN`, `MAX`, `ROUND`, `ROUNDUP`, `ROUNDDOWN`, `ABS`, `MOD`
-- **Logic:** `IF`, `IFERROR`, `AND`, `OR`, `NOT`
-- **Lookup & Reference:** `VLOOKUP`, `HLOOKUP`, `INDEX`, `MATCH`, `XLOOKUP`
-- **Conditional Aggregation:** `COUNT`, `COUNTA`, `COUNTBLANK`, `SUMIF`, `SUMIFS`, `COUNTIF`, `COUNTIFS`, `AVERAGEIF`, `AVERAGEIFS`
-- **Text:** `CONCATENATE`, `TEXTJOIN`, `LEFT`, `RIGHT`, `MID`, `LEN`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `TRIM`
-- **Dates (Excel 1900-system):** `TODAY`, `NOW`, `DATE`, `YEAR`, `MONTH`, `DAY`, `EOMONTH`, `DATEDIF`
-
-*(It also fully supports inline operators: `+`, `-`, `*`, `/`, `^`, `&`, `=`, `<`, `>`)*
-
-### Dependency tracking
-Dependencies are recalculated using Kahn's algorithm. If you create a circular reference, the engine yields a `#CYCLE!` error instead of freezing the main thread.
-
-### Strings
-Strings are expensive to duplicate in WASM. Titan interns strings into a shared `StringPool` and tracks them with a runtime reference count. Identical strings share the same `u32` ID. When a cell is overwritten, the reference count drops and the string is garbage-collected.
-
-### Type system
-A cell isn't just a float. The VM has a full `CellValue` enum tracking numbers, booleans, strings, errors (`#DIV/0!`, `#VALUE!`), and empty states. If you try to do math on a string, it propagates `#VALUE!` forward instead of silently converting it to `NaN` or `0`. Short-circuiting (`JumpIfFalse`) and VM-level `TryCatch` blocks keep untaken branches from crashing the engine.
-
-### Zero-copy JS boundary
-Most WASM spreadsheet engines serialize results back into JavaScript. Titan doesn't.
-
-The frontend creates typed array views over WASM memory instead. Reading values becomes pointer arithmetic. JavaScript mostly just tells the engine what changed, catches the returned array of updated coordinates, and renders the result.
-
 ## Usage
 
 The `TitanJS` wrapper abstracts the WebAssembly pointers and provides A1 notation. It includes an event subscription model for UI updates.
@@ -124,4 +86,42 @@ Check out the live interactive examples included in this repository:
 
 - **[Basic Example](examples/basic-example.html)** - Basic parsing, zero-copy memory reads, formula recalculations, and structural mutations.
 - **[Glide Data Grid Integration](examples/glide-example.html)** - A React spreadsheet UI using Glide Data Grid. Demonstrates cross-sheet references, bulk CSV pasting, and dynamic grid expansion.
-- **[Performance Benchmark](examples/benchmark.html)** - A head-to-head performance benchmark comparing Titan to HyperFormula across memory allocation, lazy evaluation, and structural mutations.
+- **[Performance Benchmark](examples/benchmark.html)** - A head-to-head performance benchmark comparing Titan to HyperFormula across memory allocation, lazy evaluation, and structural mutations.## Design Decisions
+
+## Design Decisions
+
+### Data layout
+Instead of representing cells as JS objects, memory is split into fixed 32×32 chunks. Each chunk stores types and payloads in separate arrays (Struct-of-Arrays).
+
+That layout is less convenient to work with than objects, but it keeps memory contiguous and makes sequential scans cheap. I tried larger chunk sizes, but cache behavior got worse before memory usage got better, so 32×32 ended up being the best compromise.
+
+### Execution & Lazy Evaluation
+Formulas don't evaluate the AST directly. They compile to bytecode and run on a stack-based VM.
+
+Ranges are deliberately capped. A formula shouldn't be able to allocate half a gigabyte and crash the browser just because someone typed `=A:A * 2`. Lookup and aggregation functions like `VLOOKUP` and `SUMIFS` use lazy `RangeRef` pointers instead of materializing full arrays, which means they can scan large columns without blowing up the VM stack.
+
+### Standard Library
+Titan includes 42 built-in functions. Lookup functions use lazy evaluation to avoid materializing large arrays.
+
+- **Math:** `SUM`, `AVERAGE`, `MIN`, `MAX`, `ROUND`, `ROUNDUP`, `ROUNDDOWN`, `ABS`, `MOD`
+- **Logic:** `IF`, `IFERROR`, `AND`, `OR`, `NOT`
+- **Lookup & Reference:** `VLOOKUP`, `HLOOKUP`, `INDEX`, `MATCH`, `XLOOKUP`
+- **Conditional Aggregation:** `COUNT`, `COUNTA`, `COUNTBLANK`, `SUMIF`, `SUMIFS`, `COUNTIF`, `COUNTIFS`, `AVERAGEIF`, `AVERAGEIFS`
+- **Text:** `CONCATENATE`, `TEXTJOIN`, `LEFT`, `RIGHT`, `MID`, `LEN`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `TRIM`
+- **Dates (Excel 1900-system):** `TODAY`, `NOW`, `DATE`, `YEAR`, `MONTH`, `DAY`, `EOMONTH`, `DATEDIF`
+
+*(It also fully supports inline operators: `+`, `-`, `*`, `/`, `^`, `&`, `=`, `<`, `>`)*
+
+### Dependency tracking
+Dependencies are recalculated using Kahn's algorithm. If you create a circular reference, the engine yields a `#CYCLE!` error instead of freezing the main thread.
+
+### Strings
+Strings are expensive to duplicate in WASM. Titan interns strings into a shared `StringPool` and tracks them with a runtime reference count. Identical strings share the same `u32` ID. When a cell is overwritten, the reference count drops and the string is garbage-collected.
+
+### Type system
+A cell isn't just a float. The VM has a full `CellValue` enum tracking numbers, booleans, strings, errors (`#DIV/0!`, `#VALUE!`), and empty states. If you try to do math on a string, it propagates `#VALUE!` forward instead of silently converting it to `NaN` or `0`. Short-circuiting (`JumpIfFalse`) and VM-level `TryCatch` blocks keep untaken branches from crashing the engine.
+
+### Zero-copy JS boundary
+Most WASM spreadsheet engines serialize results back into JavaScript. Titan doesn't.
+
+The frontend creates typed array views over WASM memory instead. Reading values becomes pointer arithmetic. JavaScript mostly just tells the engine what changed, catches the returned array of updated coordinates, and renders the result.
