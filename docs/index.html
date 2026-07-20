@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Titan Engine | Excel-speed in the Browser</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-yellow: #ffe84d;
+      --bg-main: #f9f9f9;
+      --surface-card: #ffffff;
+      --on-surface: #1a1c1c;
+      --outline: #1a1c1c;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: var(--on-surface);
+      font-family: 'Geist', sans-serif;
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--outline);
+    }
+    .scanline {
+      width: 100%;
+      height: 100px;
+      z-index: 10;
+      background: linear-gradient(0deg, rgba(107, 95, 0, 0) 0%, rgba(107, 95, 0, 0.03) 50%, rgba(107, 95, 0, 0) 100%);
+      position: absolute;
+      bottom: 100%;
+      animation: scanline 8s linear infinite;
+    }
+    @keyframes scanline {
+      0% { bottom: 100%; }
+      100% { bottom: -100px; }
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    #portal * {
+      box-sizing: border-box;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#eeeeee",
+            "on-surface-variant": "#4b4734",
+            "surface-container-low": "#f3f3f3",
+            "surface-tint": "#6b5f00",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#646464",
+            "inverse-primary": "#ddc82d",
+            "primary-fixed-dim": "#ddc82d",
+            "on-secondary": "#ffffff",
+            "surface-container-high": "#e8e8e8",
+            "on-primary-container": "#746700",
+            "inverse-on-surface": "#f1f1f1",
+            "surface-variant": "#e2e2e2",
+            "on-primary-fixed-variant": "#504700",
+            "on-primary-fixed": "#201c00",
+            "tertiary-fixed": "#34fbf8",
+            "secondary-fixed": "#e2e2e2",
+            "surface-dim": "#dadada",
+            "primary-fixed": "#fbe449",
+            "on-tertiary": "#ffffff",
+            "primary": "#6b5f00",
+            "on-tertiary-fixed": "#00201f",
+            "on-secondary-fixed": "#1b1b1b",
+            "on-background": "#1a1c1c",
+            "on-primary": "#201c00",
+            "on-error": "#ffffff",
+            "secondary-container": "#e2e2e2",
+            "on-tertiary-container": "#007372",
+            "background": "#f9f9f9",
+            "on-tertiary-fixed-variant": "#00504f",
+            "on-surface": "#1a1c1c",
+            "outline-variant": "#1a1c1c",
+            "surface": "#f9f9f9",
+            "surface-bright": "#f9f9f9",
+            "secondary": "#5e5e5e",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "inverse-surface": "#2f3131",
+            "tertiary-fixed-dim": "#00ddda",
+            "outline": "#1a1c1c",
+            "tertiary-container": "#3cfffc",
+            "tertiary": "#006a68",
+            "primary-container": "#ffe84d",
+            "on-secondary-fixed-variant": "#474747",
+            "on-error-container": "#93000a",
+            "secondary-fixed-dim": "#c6c6c6",
+            "surface-container-highest": "#e2e2e2",
+            "text-primary": "#1a1c1c",
+            "text-secondary": "#4b4734",
+            "text-muted": "#5e5e5e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "16px",
+            "margin-desktop": "48px",
+            "gutter": "16px",
+            "unit": "4px",
+            "container-max": "1280px",
+            "xl": "80px",
+            "md": "24px"
+          },
+          "fontFamily": {
+            "headline-lg": ["Geist"],
+            "data-mono": ["JetBrains Mono"],
+            "label-caps": ["Geist"],
+            "body-md": ["Geist"],
+            "body-lg": ["Geist"],
+            "headline-lg-mobile": ["Geist"],
+            "headline-md": ["Geist"],
+            "mono-label": ["JetBrains Mono"],
+            "mono-data": ["JetBrains Mono"],
+            "button-text": ["Geist"]
+          },
+          "fontSize": {
+            "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+            "data-mono": ["13px", {"lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "600"}],
+            "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+            "button-text": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+<script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "@glideapps/glide-data-grid": "https://esm.sh/@glideapps/glide-data-grid@6.0.3?external=react,react-dom",
+        "htm": "https://esm.sh/htm"
+      }
+    }
+    </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@glideapps/glide-data-grid@6.0.3/dist/index.css">
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-container/40 min-h-screen flex flex-col">
+<!-- TopNavBar Implementation -->
+<header class="bg-surface-container-lowest border-b border-outline w-full top-0 sticky z-50">
+<div class="flex justify-between items-center h-16 px-margin-desktop max-w-7xl mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-on-surface">
+        Titan Engine
+      </div>
+<nav class="hidden md:flex items-center gap-8 font-body-md text-body-md">
+<a class="text-text-secondary hover:text-on-surface transition-colors font-medium" href="getting-started.html">Getting Started</a>
+<a class="text-text-secondary hover:text-on-surface transition-colors font-medium" href="basic-example.html">Examples</a>
+<a class="text-text-secondary hover:text-on-surface transition-colors font-medium" href="glide-integration.html">Glide Integration</a>
+<a class="text-text-secondary hover:text-on-surface transition-colors font-medium" href="formulas.html">Formulas</a>
+<a class="text-text-secondary hover:text-on-surface transition-colors font-medium" href="benchmark.html">Benchmarks</a>
+</nav>
+<div class="flex items-center gap-4">
+<a href="getting-started.html" class="inline-flex items-center justify-center text-center bg-primary-container text-on-primary font-button-text px-6 py-2 rounded-lg border border-outline hover:brightness-95 active:scale-95 transition-all" >
+          Get Started
+        </a>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!-- Hero Section -->
+<section class="relative overflow-hidden py-32 px-margin-mobile md:px-margin-desktop border-b border-outline bg-surface-container-lowest">
+<div class="max-w-7xl mx-auto relative z-10 flex flex-col items-center text-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-primary-container/10 border border-outline mb-8">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<a href="https://github.com/podraven/titan-engine" class="text-on-surface font-label-caps text-label-caps uppercase">NEW RELEASE - GITHUB</a>
+</div>
+<h1 class="font-headline-lg text-[48px] md:text-[64px] md:leading-[1.1] text-text-primary mb-6 max-w-4xl tracking-tight">
+          Excel-speed in the <span class="bg-primary-container/40 italic px-2">Browser</span>.
+        </h1>
+<p class="font-body-lg text-body-lg text-text-secondary max-w-2xl mb-12 leading-relaxed">
+          The high-performance spreadsheet engine for modern web apps. Built on Rust and WebAssembly for zero-copy memory access and sub-millisecond calculation cycles.
+        </p>
+<div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+<a href="getting-started.html" class="inline-flex items-center justify-center text-center bg-primary-container text-on-primary font-button-text px-8 py-4 rounded-lg flex items-center justify-center gap-2 border border-outline hover:brightness-95 active:scale-95 transition-all group" >
+            Get Started
+            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="rocket_launch">rocket_launch</span>
+</a>
+<a href="benchmark.html" class="inline-flex items-center justify-center text-center border border-outline bg-surface-container-lowest text-text-primary font-button-text px-8 py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container transition-all active:scale-95" >
+            View Benchmarks
+          </a>
+</div>
+</div>
+</section>
+<!-- Interactive Playground Section -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop bg-surface-container-low border-b border-outline">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+<div class="lg:col-span-5">
+<h2 class="font-headline-lg text-headline-lg text-text-primary mb-4">Real-time Recalculation</h2>
+<p class="font-body-lg text-body-lg text-text-secondary mb-10 leading-relaxed">
+              Because Titan is compiled to WebAssembly, it brings native execution speed to the browser. It resolves massive dependency chains in milliseconds, so the grid never locks up while users are typing.
+            </p>
+<div class="space-y-6">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-on-surface mt-1 border border-outline">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-text-primary">60FPS Execution</h4>
+<p class="font-body-md text-body-md text-text-muted">Batched recalculations finish in under 10 milliseconds, easily beating the 16ms budget required for a smooth user interface.</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-on-surface mt-1 border border-outline">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-text-primary">Zero GC Pauses</h4>
+<p class="font-body-md text-body-md text-text-muted">Titan manages memory internally in WebAssembly. This bypasses the JavaScript garbage collector entirely, preventing unpredictable browser freezes.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-7">
+    <div class="flex items-center gap-3 text-body-lg text-text-primary mb-6">
+        <span class="font-body-lg">Try the grid, it's blazing fast!</span>
+        <span class="material-symbols-outlined rotate-90" data-icon="turn_right">turn_right</span>
+    </div>
+    <!-- Interactive Glide Data Grid UI (Rendered by React) -->
+    <div id="hero-grid-root" class="h-[500px] w-full"></div>
+    <div class="text-xs mt-2 text-gray-500">Glide data grid powered by Titan Engine</div>
+</div>
+</div>
+</section>
+<!-- Features Grid -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop border-b border-outline bg-surface-container-lowest">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-20">
+<h2 class="font-headline-lg text-headline-lg text-text-primary mb-4">Engine Capabilities</h2>
+<p class="font-body-lg text-body-lg text-text-secondary max-w-2xl mx-auto">
+            Architected in Rust to bypass JavaScript runtime limitations and deliver deterministic, ultra-low latency execution.
+          </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- WASM-Compiled Core -->
+<div class="p-8 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container-low transition-colors group">
+<div class="w-12 h-12 rounded bg-primary-container/20 flex items-center justify-center text-on-surface mb-6 group-hover:scale-105 transition-transform border border-outline">
+<span class="material-symbols-outlined" data-icon="speed">speed</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-text-primary mb-2">WASM-Compiled Core</h3>
+<p class="font-body-md text-body-md text-text-muted">Predictable, native-level execution via a custom Rust stack-based VM and Pratt parser.</p>
+</div>
+<!-- Zero-Copy Memory -->
+<div class="p-8 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container-low transition-colors group">
+<div class="w-12 h-12 rounded bg-primary-container/20 flex items-center justify-center text-on-surface mb-6 group-hover:scale-105 transition-transform border border-outline">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-text-primary mb-2">Zero-Copy Memory</h3>
+<p class="font-body-md text-body-md text-text-muted">Bypasses JS garbage collection by sharing memory buffers directly between the engine and UI.</p>
+</div>
+<!-- Topological Graph -->
+<div class="p-8 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container-low transition-colors group">
+<div class="w-12 h-12 rounded bg-primary-container/20 flex items-center justify-center text-on-surface mb-6 group-hover:scale-105 transition-transform border border-outline">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-text-primary mb-2">Topological Graph</h3>
+<p class="font-body-md text-body-md text-text-muted">Resolves complex chained formulas flawlessly using Kahn's algorithm with cycle detection.</p>
+</div>
+<!-- Atomic Time-Travel -->
+<div class="p-8 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container-low transition-colors group">
+<div class="w-12 h-12 rounded bg-primary-container/20 flex items-center justify-center text-on-surface mb-6 group-hover:scale-105 transition-transform border border-outline">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-text-primary mb-2">Atomic Time-Travel</h3>
+<p class="font-body-md text-body-md text-text-muted">Instantly undo or redo massive batched structural mutations with O(1) state snapshots.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Benchmarks Section -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop bg-surface-container-low border-b border-outline">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col lg:flex-row items-center gap-20">
+<div class="lg:w-1/2 w-full">
+<div class="p-10 bg-surface-container-lowest border border-outline rounded-2xl shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline-lg text-headline-lg text-text-primary">Array Math (Matrix Broadcasting)</h3>
+<span class="font-mono-label text-mono-label text-text-muted">100,000 evals</span>
+</div>
+<div class="space-y-6 mb-12">
+<div>
+<div class="flex justify-between items-center mb-3">
+<span class="font-mono-label text-mono-label text-on-surface font-bold">Titan Engine (WASM)</span>
+<span class="font-mono-data text-mono-data text-on-surface font-bold">8.0ms</span>
+</div>
+<div class="h-3 bg-surface-container-high border border-outline rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full transition-all duration-1000 w-[9%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-3">
+<span class="font-mono-label text-mono-label text-text-secondary">HyperFormula (JS)</span>
+<span class="font-mono-data text-mono-data text-text-muted">82.0ms</span>
+</div>
+<div class="h-3 bg-surface-container-high border border-outline rounded-full overflow-hidden">
+<div class="h-full bg-surface-dim rounded-full transition-all duration-1000 w-[100%]"></div>
+</div>
+</div>
+</div>
+
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline-lg text-headline-lg text-text-primary">Parsing & Compilation</h3>
+<span class="font-mono-label text-mono-label text-text-muted">30,000 formulas</span>
+</div>
+<div class="space-y-6 mb-12">
+<div>
+<div class="flex justify-between items-center mb-3">
+<span class="font-mono-label text-mono-label text-on-surface font-bold">Titan Engine (WASM)</span>
+<span class="font-mono-data text-mono-data text-on-surface font-bold">2812.0ms</span>
+</div>
+<div class="h-3 bg-surface-container-high border border-outline rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full transition-all duration-1000 w-[37%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-3">
+<span class="font-mono-label text-mono-label text-text-secondary">HyperFormula (JS)</span>
+<span class="font-mono-data text-mono-data text-text-muted">7540.0ms</span>
+</div>
+<div class="h-3 bg-surface-container-high border border-outline rounded-full overflow-hidden">
+<div class="h-full bg-surface-dim rounded-full transition-all duration-1000 w-[100%]"></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+<div class="lg:w-1/2">
+<h2 class="font-headline-lg text-headline-lg text-text-primary mb-6">Proven WebAssembly Performance</h2>
+<p class="font-body-lg text-body-lg text-text-secondary mb-10 leading-relaxed">
+              We benchmarked Titan against HyperFormula (the industry standard JS formula engine) across 10 extreme scenarios. Titan processes data in WASM linear memory, bypassing the JavaScript garbage collector to provide predictable, deterministic speeds even under massive loads.
+            </p>
+<ul class="space-y-5 mb-12">
+<li class="flex items-center gap-3 text-body-md text-text-primary">
+<span class="material-symbols-outlined text-primary text-sm font-bold" data-icon="check_circle">check_circle</span>
+                <strong>Memory Allocation:</strong> 5.7x faster (100k raw cell inserts in 70ms)
+              </li>
+<li class="flex items-center gap-3 text-body-md text-text-primary">
+<span class="material-symbols-outlined text-primary text-sm font-bold" data-icon="check_circle">check_circle</span>
+                <strong>Data Processing:</strong> 2.8x faster VLOOKUPs and SUMIFs
+              </li>
+<li class="flex items-start gap-3 text-body-md text-text-primary">
+<span class="material-symbols-outlined text-primary text-sm font-bold mt-1" data-icon="check_circle">check_circle</span>
+                <span><strong>Absolute Stability:</strong> Handled massive structural mutations (inserting rows across 20k chained formulas) in just 14ms, a test where Javascript completely crashed.</span>
+              </li>
+</ul>
+<a href="benchmark.html" class="text-on-surface font-bold font-button-text inline-flex items-center gap-2 hover:gap-3 transition-all border-b-2 border-primary-container pb-1">
+              View the full 10-scenario benchmark suite
+              <span class="material-symbols-outlined" data-icon="arrow_right_alt">arrow_right_alt</span>
+</a>
+</div>
+</div>
+</div>
+</section>
+<!-- Final Call to Action -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop text-center bg-surface-container-lowest">
+<div class="max-w-4xl mx-auto p-16 bg-surface-container-low border border-outline rounded-3xl relative overflow-hidden shadow-sm">
+<div class="absolute -top-32 -left-32 w-64 h-64 bg-primary-container/20 blur-[100px] rounded-full"></div>
+<div class="absolute -bottom-32 -right-32 w-64 h-64 bg-primary-container/20 blur-[100px] rounded-full"></div>
+<h2 class="font-headline-lg text-headline-lg text-text-primary mb-4 relative z-10">Ready to accelerate?</h2>
+<p class="font-body-lg text-body-lg text-text-secondary mb-12 relative z-10 max-w-xl mx-auto">
+          Start building next-gen spreadsheets with the most advanced WebAssembly engine in the browser.
+        </p>
+<div class="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
+<a href="getting-started.html" class="inline-flex items-center justify-center text-center bg-primary-container text-on-primary font-button-text px-10 py-4 rounded-lg border border-outline hover:brightness-95 active:scale-95 transition-all" >
+            Get Started
+          </a>
+<a href="formulas.html" class="inline-flex items-center justify-center text-center border border-outline bg-surface-container-lowest text-text-primary font-button-text px-10 py-4 rounded-lg hover:bg-surface-container transition-all active:scale-95" >
+            Documentation
+          </a>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Implementation -->
+<footer class="bg-surface-container-lowest border-t border-outline w-full py-xl">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop max-w-7xl mx-auto gap-md">
+<div class="font-label-caps text-label-caps text-on-surface uppercase font-bold tracking-widest">
+        Titan Engine
+      </div>
+<div class="flex flex-wrap justify-center gap-8 text-text-secondary font-body-md text-body-md font-medium">
+<a class="hover:text-on-surface hover:underline transition-all" href="https://github.com/podraven/titan-engine">Github</a>
+<!-- <a class="hover:text-on-surface hover:underline transition-all" href="#">Status</a>
+<a class="hover:text-on-surface hover:underline transition-all" href="#">Privacy Policy</a>
+<a class="hover:text-on-surface hover:underline transition-all" href="#">Terms of Service</a> -->
+</div>
+<div class="font-body-md text-body-md text-text-muted">
+        © 2024 Podraven. All rights reserved.
+      </div>
+</div>
+</footer>
+<script>
+    // Animate benchmark bars on intersection
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.querySelectorAll('.bg-primary-container, .bg-surface-dim').forEach(bar => {
+            const finalWidth = bar.style.width || bar.classList.contains('w-[15%]') ? '15%' : '85%';
+            bar.style.width = '0';
+            setTimeout(() => {
+              bar.style.width = finalWidth;
+            }, 50);
+          });
+        }
+      });
+    }, { threshold: 0.5 });
+
+    const benchmarkSection = document.querySelector('section.bg-surface-container-low');
+    if (benchmarkSection) observer.observe(benchmarkSection);
+  </script>
+<div id="portal" style="position: fixed; top: 0; left: 0; z-index: 9999;"></div>
+<script type="module">
+        import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { DataEditor, GridCellKind } from '@glideapps/glide-data-grid';
+        import htm from 'htm';
+        import { initTitan } from '../titan.js';
+
+        const html = htm.bind(React.createElement);
+
+        function getExcelColumn(i) {
+            let letter = '';
+            while (i >= 0) {
+                letter = String.fromCharCode(65 + (i % 26)) + letter;
+                i = Math.floor(i / 26) - 1;
+            }
+            return letter;
+        }
+
+        function HeroGrid() {
+            const [engine, setEngine] = useState(null);
+            const [sheet, setSheet] = useState(null);
+            const [updateTrigger, setUpdateTrigger] = useState(0);
+            const [activeCell, setActiveCell] = useState(null); // [col, row]
+            const [formulaBarText, setFormulaBarText] = useState("=SUM(A1:B10)");
+            const [recalcTime, setRecalcTime] = useState("0.08");
+            const [dimensions, setDimensions] = useState({ rows: 5001, cols: 13 });
+            
+            const cellInputs = useRef({});
+            const cellOutputs = useRef({});
+
+            useEffect(() => {
+                async function load() {
+                    const Titan = await initTitan();
+                    const e = new Titan();
+                    const s1 = e.addSheet("Sheet1");
+                    
+                    e.onCellsChanged((changes) => {
+                        for (const change of changes) {
+                            if (!cellOutputs.current[change.row]) cellOutputs.current[change.row] = {};
+                            cellOutputs.current[change.row][change.col] = change.cell.display;
+                            
+                            if (!cellInputs.current[change.row]) cellInputs.current[change.row] = {};
+                            cellInputs.current[change.row][change.col] = change.cell.value;
+                        }
+                        setUpdateTrigger(prev => prev + 1);
+                    });
+                    
+                    const updates = [];
+                    const headers = ["ID", "Name", "Region", "Q1", "Q2", "Q3", "Q4", "Total", "Average", "Bonus", "NetPayout", "RegionLookup", "RowConcat"];
+                    cellInputs.current[0] = {};
+                    for (let c = 0; c < headers.length; c++) {
+                        cellInputs.current[0][c] = headers[c];
+                        updates.push({ sheet: s1.id, cell: {row: 0, col: c}, value: headers[c] });
+                    }
+                    
+                    const firstNames = ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Heidi", "Ivan", "Judy"];
+                    const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Moore", "Taylor"];
+                    const regions = ["North", "South", "East", "West"];
+                    
+                    for (let i = 1; i <= 5000; i++) {
+                        const rNum = i + 1;
+                        const rowData = [
+                            `EMP-${i}`,
+                            firstNames[i % 10] + " " + lastNames[(i * 3) % 10],
+                            regions[(i * 7) % 4],
+                            Math.floor(Math.random() * 900) + 100,
+                            Math.floor(Math.random() * 900) + 100,
+                            Math.floor(Math.random() * 900) + 100,
+                            Math.floor(Math.random() * 900) + 100,
+                            `=SUM(D${rNum}:G${rNum})`,
+                            `=AVERAGE(D${rNum}:G${rNum})`,
+                            `=IF(H${rNum}>2000, 500, 0)`,
+                            `=H${rNum}+J${rNum}`,
+                            `=VLOOKUP("EMP-1", A$2:C$100, 3, FALSE)`,
+                            `=CONCATENATE(A${rNum}, "-", B${rNum})`
+                        ];
+                        
+                        cellInputs.current[i] = {};
+                        for (let c = 0; c < rowData.length; c++) {
+                            cellInputs.current[i][c] = rowData[c].toString();
+                            updates.push({ sheet: s1.id, cell: {row: i, col: c}, value: rowData[c] });
+                        }
+                    }
+
+                    const time = e.setCells(updates);
+                    setRecalcTime(time.toFixed(2));
+
+                    const unsubscribe = e.onCellsChanged(() => {
+                        setUpdateTrigger(prev => prev + 1);
+                    });
+
+                    setSheet(s1);
+                    setEngine(e);
+                    
+                    return () => unsubscribe();
+                }
+                
+                let cleanup = () => {};
+                load().then(c => { if(c) cleanup = c; });
+                return () => cleanup();
+            }, []);
+
+            const columns = useMemo(() => Array.from({ length: dimensions.cols }).map((_, i) => ({
+                title: getExcelColumn(i),
+                id: `col_${i}`,
+                width: 90
+            })), [dimensions.cols]);
+
+            const getCellContent = useCallback(([col, row]) => {
+                if (!sheet) return { kind: GridCellKind.Text, displayData: "", data: "", allowOverlay: true };
+                
+                const display = cellOutputs.current[row]?.[col] || "";
+                const rawInput = cellInputs.current[row]?.[col] || display;
+                
+                return {
+                    kind: GridCellKind.Text,
+                    allowOverlay: true,
+                    displayData: display.toString(),
+                    data: rawInput.toString(),
+                    readonly: false
+                };
+            }, [sheet, updateTrigger]);
+
+            // A ref to hold queued edits for debouncing
+            const editQueue = useRef([]);
+            const editTimeout = useRef(null);
+
+            const flushEdits = useCallback(() => {
+                if (editQueue.current.length === 0) return;
+                const updates = editQueue.current;
+                editQueue.current = [];
+                
+                const time = sheet.titan.setCells(updates);
+                setRecalcTime(time.toFixed(2));
+            }, [sheet]);
+
+            const onCellEdited = useCallback((cell, newValue) => {
+                const [col, row] = cell;
+                const val = newValue.data;
+                
+                // Prevent redundant operations
+                if (cellInputs.current[row] && cellInputs.current[row][col] === val) {
+                    return;
+                }
+                
+                if (!cellInputs.current[row]) cellInputs.current[row] = {};
+                cellInputs.current[row][col] = val;
+
+                // Queue the edit
+                editQueue.current.push({ sheet: sheet.id, cell: {row, col}, value: val });
+                
+                // Debounce the flush
+                if (editTimeout.current) clearTimeout(editTimeout.current);
+                editTimeout.current = setTimeout(flushEdits, 10);
+                
+                if (activeCell && activeCell[0] === col && activeCell[1] === row) {
+                    setFormulaBarText(val);
+                }
+            }, [sheet, activeCell, flushEdits]);
+
+            const onCellClicked = useCallback((cell) => {
+                const [col, row] = cell;
+                setActiveCell([col, row]);
+                const val = cellInputs.current[row]?.[col] || (sheet ? sheet.get({row, col}).display : "");
+                setFormulaBarText(val.toString());
+                
+                // Update the external formula bar input
+                const fxInput = document.getElementById('hero-fx-input');
+                if (fxInput) fxInput.value = val.toString();
+            }, [sheet]);
+            
+
+            const onPaste = useCallback((target, values) => {
+                const [startCol, startRow] = target;
+                let maxR = dimensions.rows;
+                let maxC = dimensions.cols;
+                const updates = [];
+
+                for (let i = 0; i < values.length; i++) {
+                    let rowData = values[i];
+                    if (rowData.length === 1 && rowData[0].includes('	')) {
+                        rowData = rowData[0].split('	');
+                    } else if (rowData.length === 1 && rowData[0].includes(',')) {
+                        rowData = rowData[0].split(',');
+                    }
+
+                    const r = startRow + i;
+                    maxR = Math.max(maxR, r + 1);
+                    maxC = Math.max(maxC, startCol + rowData.length);
+
+                    if (!cellInputs.current[r]) cellInputs.current[r] = {};
+
+                    for (let j = 0; j < rowData.length; j++) {
+                        const c = startCol + j;
+                        const val = rowData[j].trim();
+                        cellInputs.current[r][c] = val;
+                        updates.push({ sheet: sheet.id, cell: {row: r, col: c}, value: val });
+                    }
+                }
+                
+                if (maxR > dimensions.rows || maxC > dimensions.cols) {
+                    setDimensions({ rows: maxR, cols: maxC });
+                }
+                
+                if (updates.length > 0) {
+                    setTimeout(() => {
+                        const time = sheet.titan.setCells(updates);
+                        setRecalcTime(time.toFixed(2));
+                    }, 0);
+                }
+                return true;
+            }, [sheet, dimensions]);
+
+            const onDelete = useCallback((selection) => {
+                if (!selection || !selection.current || !selection.current.range) return true;
+                const range = selection.current.range;
+                
+                for (let r = range.y; r < range.y + range.height; r++) {
+                    if (!cellInputs.current[r]) cellInputs.current[r] = {};
+                    for (let c = range.x; c < range.x + range.width; c++) {
+                        cellInputs.current[r][c] = "";
+                        editQueue.current.push({ sheet: sheet.id, cell: {row: r, col: c}, value: "" });
+                    }
+                }
+                
+                if (editTimeout.current) clearTimeout(editTimeout.current);
+                editTimeout.current = setTimeout(flushEdits, 10);
+                
+                // Return FALSE to allow Glide Data Grid to natively clear the UI canvas!
+                // We have already safely pushed the updates to our Rust queue above.
+                return false;
+            }, [sheet, flushEdits]);
+
+            // Keyboard shortcuts for Undo/Redo
+            useEffect(() => {
+                const handleGlobalKeyDown = (e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            try {
+                                const time = sheet.titan.redo();
+                                if (time !== undefined) {
+                                    setRecalcTime(time.toFixed(2));
+                                }
+                            } catch (err) {}
+                        } else {
+                            try {
+                                const time = sheet.titan.undo();
+                                if (time !== undefined) {
+                                    setRecalcTime(time.toFixed(2));
+                                }
+                            } catch (err) {}
+                        }
+                    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') {
+                        e.preventDefault();
+                        try {
+                            const time = sheet.titan.redo();
+                            if (time !== undefined) {
+                                setRecalcTime(time.toFixed(2));
+                            }
+                        } catch (err) {}
+                    }
+                };
+                window.addEventListener('keydown', handleGlobalKeyDown);
+                return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+            }, [sheet]);
+
+            // Listen to external formula bar
+            useEffect(() => {
+                const fxInput = document.getElementById('hero-fx-input');
+                if (!fxInput) return;
+                
+                const handleKeyDown = (e) => {
+                    if (e.key === 'Enter' && activeCell && sheet) {
+                        const [col, row] = activeCell;
+                        const val = fxInput.value;
+                        
+                        if (!cellInputs.current[row]) cellInputs.current[row] = {};
+                        cellInputs.current[row][col] = val;
+
+                        const time = sheet.set({row, col}, val);
+                        if (time !== undefined) {
+                            setRecalcTime(time.toFixed(2));
+                        }
+                    }
+                };
+                
+                fxInput.addEventListener('keydown', handleKeyDown);
+                return () => fxInput.removeEventListener('keydown', handleKeyDown);
+            }, [activeCell, sheet]);
+
+            if (!engine || !sheet) return html`<div className="p-8 text-text-muted flex items-center justify-center h-full">Booting WebAssembly...</div>`;
+
+            const customTheme = {
+                bgCell: '#ffffff',
+                bgHeader: '#f3f3f3',
+                textDark: '#1a1c1c',
+                textMedium: '#5e5e5e',
+                textHeader: '#1a1c1c',
+                borderColor: '#1a1c1c',
+                accentColor: '#1a1c1c',
+                accentLight: '#ffe84d',
+                fontFamily: 'Geist Mono, monospace',
+                headerFontStyle: 'bold 13px Geist Mono, monospace',
+                baseFontStyle: '13px Geist Mono, monospace'
+            };
+
+            return html`
+                <div className="bg-surface-container-lowest border border-outline rounded-xl overflow-hidden relative shadow-sm h-full flex flex-col">
+                    
+                    <!-- Mac Window / Formula Bar -->
+                    <div className="bg-surface-container-high border-b border-outline p-4 flex items-center gap-4">
+                        <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-error/20 border border-error"></div>
+                            <div class="w-3 h-3 rounded-full bg-primary/20 border border-primary"></div>
+                            <div class="w-3 h-3 rounded-full bg-tertiary/20 border border-tertiary"></div>
+                        </div>
+                        <div className="flex-grow bg-surface-container-lowest rounded px-3 py-1.5 border border-outline flex items-center gap-2 shadow-inner">
+                            <span className="text-[#6b5f00] font-mono-data text-mono-data font-bold">ƒx</span>
+                            <input 
+                                id="hero-fx-input"
+                                className="bg-transparent border-none focus:ring-0 text-text-primary font-mono-data text-mono-data w-full p-0 outline-none" 
+                                type="text" 
+                                value=${formulaBarText}
+                                onChange=${(e) => setFormulaBarText(e.target.value)}
+                                placeholder="Select a cell..."
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Grid Container -->
+                    <div className="flex-1 relative bg-surface-container-lowest min-h-[300px]">
+                        <${DataEditor}
+                            columns=${columns}
+                            rows=${dimensions.rows}
+                            getCellContent=${getCellContent}
+                            onCellEdited=${onCellEdited}
+                            onCellClicked=${onCellClicked}
+                            onPaste=${onPaste}
+                            onDelete=${onDelete}
+                            getCellsForSelection=${true}
+                            rowMarkers="both"
+                            theme=${customTheme}
+                            width="100%"
+                            height="100%"
+                            onRowAppended=${() => setDimensions(prev => ({ ...prev, rows: prev.rows + 1 }))}
+                            trailingRowOptions=${{ sticky: false, tint: true, hint: "New row..." }}
+                        />
+
+                        <!-- Floating Overlay -->
+                        <div className="absolute top-4 right-4 bg-surface-container-lowest border border-outline px-3 py-2 rounded shadow flex items-center gap-3 pointer-events-none z-50">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-mono-data text-text-muted uppercase tracking-widest mb-0.5" style=${{fontFamily: 'Geist Mono, monospace'}}>Recalc Time</span>
+                                <span className="text-on-surface font-mono-data text-mono-data font-bold" style=${{fontFamily: 'Geist Mono, monospace'}}>${recalcTime}ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const root = createRoot(document.getElementById('hero-grid-root'));
+        root.render(html`<${HeroGrid} />`);
+    </script>
+
+    <div id="portal" style="position: fixed; top: 0; left: 0; z-index: 9999;"></div>
+</body></html>

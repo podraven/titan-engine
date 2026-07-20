@@ -78,6 +78,21 @@ export class TitanEngine {
      * @param {number} sheet
      * @param {number} row
      * @param {number} col
+     * @returns {string | undefined}
+     */
+    get_raw_input(sheet, row, col) {
+        const ret = wasm.titanengine_get_raw_input(this.__wbg_ptr, sheet, row, col);
+        let v1;
+        if (ret[0] !== 0) {
+            v1 = getStringFromWasm0(ret[0], ret[1]).slice();
+            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        }
+        return v1;
+    }
+    /**
+     * @param {number} sheet
+     * @param {number} row
+     * @param {number} col
      * @returns {number}
      */
     get_value(sheet, row, col) {

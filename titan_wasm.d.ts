@@ -11,6 +11,7 @@ export class TitanEngine {
     end_batch(): Uint32Array;
     get_chunk_payloads_ptr(sheet: number, row: number, col: number): number;
     get_chunk_types_ptr(sheet: number, row: number, col: number): number;
+    get_raw_input(sheet: number, row: number, col: number): string | undefined;
     get_value(sheet: number, row: number, col: number): number;
     get_value_string(sheet: number, row: number, col: number): string;
     insert_col(sheet: number, target_col: number): void;
@@ -33,6 +34,7 @@ export interface InitOutput {
     readonly titanengine_end_batch: (a: number) => [number, number, number];
     readonly titanengine_get_chunk_payloads_ptr: (a: number, b: number, c: number, d: number) => number;
     readonly titanengine_get_chunk_types_ptr: (a: number, b: number, c: number, d: number) => number;
+    readonly titanengine_get_raw_input: (a: number, b: number, c: number, d: number) => [number, number];
     readonly titanengine_get_value: (a: number, b: number, c: number, d: number) => number;
     readonly titanengine_get_value_string: (a: number, b: number, c: number, d: number) => [number, number];
     readonly titanengine_insert_col: (a: number, b: number, c: number) => [number, number];

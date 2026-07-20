@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titan Engine - Full Feature Showcase</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    
+        <style>
+        :root {
+            --primary-yellow: #ffe84d;
+            --bg-main: #f9f9f9;
+            --surface-card: #ffffff;
+            --on-surface: #1a1c1c;
+            --outline: #1a1c1c;
+        }
+        body { font-family: 'Geist', sans-serif; background-color: var(--bg-main); color: var(--on-surface); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        pre, code, .font-mono, .time { font-family: 'JetBrains Mono', monospace; }
+        
+        .runner { margin-bottom: 2rem; border: 1px solid var(--outline); border-radius: 8px; overflow: hidden; background: var(--surface-card);}
+        .runner-header { background: #f3f3f3; padding: 1rem 1.5rem; font-weight: 600; border-bottom: 1px solid var(--outline); display: flex; justify-content: space-between; font-size: 1.1rem; }
+        .runner-body { padding: 1.5rem; }
+        .btn { padding: 0.5rem 1.25rem; font-weight: 600; background: var(--primary-yellow); color: #6b5f00; border: 1px solid var(--outline); border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.1s;}
+        .btn:hover { background: #fbe449; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.875rem; background: var(--surface-card); border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--outline); }
+        th, td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--outline); text-align: left; }
+        th { font-weight: 500; color: #5e5e5e; background-color: #f3f3f3; }
+        td { color: var(--on-surface); }
+        
+        .result-row { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px dashed var(--outline); padding: 0.75rem 0; }
+        .result-row:last-child { border-bottom: none; }
+        
+        .winner { color: #007372; font-weight: 600; }
+        .loser { color: #ba1a1a; font-weight: 600; }
+        
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .text-muted { color: #5e5e5e; font-size: 0.9em; }
+        
+        .log { background: #f3f3f3; padding: 1rem; border: 1px solid var(--outline); overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--on-surface); border-radius: 0.5rem; margin-top: 1rem; margin-bottom: 2rem;}
+    </style>
+    <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#eeeeee",
+            "on-surface-variant": "#4b4734",
+            "surface-container-low": "#f3f3f3",
+            "surface-tint": "#6b5f00",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#646464",
+            "inverse-primary": "#ddc82d",
+            "primary-fixed-dim": "#ddc82d",
+            "on-secondary": "#ffffff",
+            "surface-container-high": "#e8e8e8",
+            "on-primary-container": "#746700",
+            "inverse-on-surface": "#f1f1f1",
+            "surface-variant": "#e2e2e2",
+            "on-primary-fixed-variant": "#504700",
+            "on-primary-fixed": "#201c00",
+            "tertiary-fixed": "#34fbf8",
+            "secondary-fixed": "#e2e2e2",
+            "surface-dim": "#dadada",
+            "primary-fixed": "#fbe449",
+            "on-tertiary": "#ffffff",
+            "primary": "#6b5f00",
+            "on-tertiary-fixed": "#00201f",
+            "on-secondary-fixed": "#1b1b1b",
+            "on-background": "#1a1c1c",
+            "on-primary": "#201c00",
+            "on-error": "#ffffff",
+            "secondary-container": "#e2e2e2",
+            "on-tertiary-container": "#007372",
+            "background": "#f9f9f9",
+            "on-tertiary-fixed-variant": "#00504f",
+            "on-surface": "#1a1c1c",
+            "outline-variant": "#1a1c1c",
+            "surface": "#f9f9f9",
+            "surface-bright": "#f9f9f9",
+            "secondary": "#5e5e5e",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "inverse-surface": "#2f3131",
+            "tertiary-fixed-dim": "#00ddda",
+            "outline": "#1a1c1c",
+            "tertiary-container": "#3cfffc",
+            "tertiary": "#006a68",
+            "primary-container": "#ffe84d",
+            "on-secondary-fixed-variant": "#474747",
+            "on-error-container": "#93000a",
+            "secondary-fixed-dim": "#c6c6c6",
+            "surface-container-highest": "#e2e2e2",
+            "text-primary": "#1a1c1c",
+            "text-secondary": "#4b4734",
+            "text-muted": "#5e5e5e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "16px",
+            "margin-desktop": "48px",
+            "gutter": "16px",
+            "unit": "4px",
+            "container-max": "1280px",
+            "xl": "80px",
+            "md": "24px"
+          },
+          "fontFamily": {
+            "headline-lg": ["Geist"],
+            "data-mono": ["JetBrains Mono"],
+            "label-caps": ["Geist"],
+            "body-md": ["Geist"],
+            "body-lg": ["Geist"],
+            "headline-lg-mobile": ["Geist"],
+            "headline-md": ["Geist"],
+            "mono-label": ["JetBrains Mono"],
+            "mono-data": ["JetBrains Mono"],
+            "button-text": ["Geist"]
+          },
+          "fontSize": {
+            "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+            "data-mono": ["13px", {"lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "600"}],
+            "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+            "button-text": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+    </script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@glideapps/glide-data-grid@6.0.3/dist/index.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "@glideapps/glide-data-grid": "https://esm.sh/@glideapps/glide-data-grid@6.0.3?external=react,react-dom",
+        "htm": "https://esm.sh/htm"
+      }
+    }
+    </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-container/40 min-h-screen flex flex-col">
+<!-- HEADER -->
+    <header class="bg-surface-container-lowest border-b border-outline w-full top-0 sticky z-50">
+        <div class="flex justify-between items-center h-16 px-8 max-w-7xl mx-auto">
+            <a href="index.html" class="text-2xl font-bold text-on-surface" style="font-family: 'Geist', sans-serif;">Titan Engine</a>
+            <nav class="hidden md:flex items-center gap-8 font-medium" style="font-family: 'Geist', sans-serif;">
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="getting-started.html" style="text-decoration:none;">Getting Started</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors font-medium" href="basic-example.html" style="text-decoration:none;">Examples</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="glide-integration.html" style="text-decoration:none;">Glide Integration</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="formulas.html" style="text-decoration:none;">Formulas</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="benchmark.html" style="text-decoration:none;">Benchmarks</a>
+            </nav>
+        </div>
+    </header>
+    <main class="flex-grow max-w-4xl mx-auto px-4 sm:px-8 py-12 sm:py-16 w-full overflow-hidden">
+    <h1 class="font-headline-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Titan Engine V2 Showcase</h1>
+    <p class="text-text-secondary mb-8 leading-relaxed">This is a unified demonstration of the Titan WebAssembly Spreadsheet Engine. Features progress from basic formula parsing to VLOOKUPs, zero-copy memory rendering, and structural mutations.</p>
+
+        <!-- SECTION 1 -->
+    <div class="mb-12 bg-surface-container-lowest border border-outline rounded-lg p-6 shadow-sm" id="sec1">
+        <h2 class="font-headline-md text-headline-md text-text-primary mb-4">1. Basic Math & Formula Parsing</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">A1:</label><input type="number" id="s1_a1" value="10" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">B1:</label><input type="number" id="s1_b1" value="5" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">C1:</label><input type="text" id="s1_c1_form" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0" value="=-2^2 + A1 * B1"></div>
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">Res:</label><input type="text" id="s1_c1_res" class="w-full bg-surface-container-low text-text-secondary border-outline rounded p-2 focus:ring-0" readonly></div>
+        </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="mb-12 bg-surface-container-lowest border border-outline rounded-lg p-6 shadow-sm" id="sec2">
+        <h2 class="font-headline-md text-headline-md text-text-primary mb-4">2. Advanced Standard Library (Lookups & Text)</h2>
+        <div class="bg-surface-container-low border border-outline rounded-lg p-4 text-text-secondary mb-6">Titan supports over 40 standard library functions including VLOOKUP, SUMIFS, and text manipulation.</div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">A2:</label><input type="text" id="s2_a2" value="ID-1" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">B2:</label><input type="text" id="s2_b2" value="Apple" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">A3:</label><input type="text" id="s2_a3" value="ID-2" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">B3:</label><input type="text" id="s2_b3" value="Banana" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-16 sm:w-20 flex-shrink-0">VLOOKUP:</label><input type="text" id="s2_form" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0" value='=VLOOKUP("ID-2", A2:B3, 2, FALSE)'></div>
+            <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">Res:</label><input type="text" id="s2_res" class="w-full bg-surface-container-low text-text-secondary border-outline rounded p-2 focus:ring-0" readonly></div>
+        </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="mb-12 bg-surface-container-lowest border border-outline rounded-lg p-6 shadow-sm" id="sec3">
+        <h2 class="font-headline-md text-headline-md text-text-primary mb-4">3. Array Broadcasting & Spill Mechanics</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
+            <!-- Left Column: Inputs -->
+            <div class="flex flex-col gap-4">
+                <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">D1:</label><input type="number" id="s3_d1" value="10" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+                <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">D2:</label><input type="number" id="s3_d2" value="20" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+                <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">D3:</label><input type="number" id="s3_d3" value="30" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0"></div>
+            </div>
+            
+            <!-- Right Column: Formulas & Results -->
+            <div class="flex flex-col gap-4">
+                <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">E1:</label><input type="text" id="s3_e1_form" class="w-full bg-surface-container-lowest text-text-primary border-outline rounded p-2 focus:ring-0" value="=D1:D3 * 2"></div>
+                <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">&#8627;</label><input type="text" id="s3_e1_res" class="w-full bg-surface-container-low text-text-secondary border-outline rounded p-2 focus:ring-0" readonly></div>
+                <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">&#8627;</label><input type="text" id="s3_e2_res" class="w-full bg-surface-container-low text-text-secondary border-outline rounded p-2 focus:ring-0" readonly></div>
+                <div class="flex items-center gap-3"><label class="text-xs font-bold text-text-secondary w-8 flex-shrink-0">&#8627;</label><input type="text" id="s3_e3_res" class="w-full bg-surface-container-low text-text-secondary border-outline rounded p-2 focus:ring-0" readonly></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="mb-12 bg-surface-container-lowest border border-outline rounded-lg p-6 shadow-sm" id="sec4">
+        <h2 class="font-headline-md text-headline-md text-text-primary mb-4">4. Zero-Copy WebAssembly Boundary</h2>
+        <div class="flex flex-wrap items-center gap-4 mb-4"><button class="bg-primary-container text-on-primary font-button-text px-4 py-2 rounded border border-outline hover:brightness-95 active:scale-95 transition-all" id="runZeroCopy">Fill Grid (Math + Zero Copy Read)</button>
+        <span id="zc_perf" style="margin-left: 15px; font-weight: bold; color: #0066cc;"></span></div>
+        <div class="w-full overflow-x-auto pb-4"><div class="grid grid-cols-[repeat(16,minmax(0,1fr))] gap-px bg-outline border border-outline p-px w-max mt-4" id="zc_grid"></div></div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="mb-12 bg-surface-container-lowest border border-outline rounded-lg p-6 shadow-sm" id="sec5">
+        <h2 class="font-headline-md text-headline-md text-text-primary mb-4">5. Structural Mutations & Formula Shifting</h2>
+        <div class="bg-surface-container-low border border-outline rounded-lg p-4 text-text-secondary mb-6">
+            Notice how Row 2 has a formula <code>=SUM(A1:A2)</code>. <br>
+            If you click "Insert Row at Row 1", the engine physically shifts A2 down to A3. <br>
+            Crucially, the <strong>AST also dynamically shifts</strong>, changing the formula to <code>=SUM(A1:A3)</code> under the hood, and re-evaluates.
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+<button class="bg-primary-container text-on-primary font-button-text px-4 py-2 rounded border border-outline hover:brightness-95 active:scale-95 transition-all" id="runInsert">Insert Row at Row 1</button>
+<button class="bg-primary-container text-on-primary font-button-text px-4 py-2 rounded border border-outline hover:brightness-95 active:scale-95 transition-all" id="runPopulate">Set New Row 1 = 50</button>
+<button class="bg-primary-container text-on-primary font-button-text px-4 py-2 rounded border border-outline hover:brightness-95 active:scale-95 transition-all" id="runUndo" style="background-color: #e67e22;">Undo Insert</button>
+</div>
+        <div class="w-full overflow-x-auto pb-4"><div class="grid grid-cols-[80px_100px_140px] gap-px bg-outline border border-outline w-max mt-4" id="struct_grid"></div></div>
+    </div>
+
+    </div>
+
+    <!-- SECTION 6 -->
+    <div class="mb-12 bg-surface-container-lowest border border-outline rounded-lg p-6 shadow-sm" id="sec6">
+        <h2 class="font-headline-md text-headline-md text-text-primary mb-4">6. UI Delta Updates (Performance Polish)</h2>
+        <div class="bg-surface-container-low border border-outline rounded-lg p-4 text-text-secondary mb-6">
+            When you type in the grid, the engine only returns the exact coordinates of cells that changed. We map over this flat Uint32Array <code>[sheet, row, col...]</code> and selectively update the UI instead of re-rendering everything.
+        </div>
+        <div class="w-full overflow-x-auto pb-4"><div id="mini-grid-root"></div></div>
+        <p style="color: var(--muted-fg); margin-top: 16px;">Cells updated: <span id="s6_delta_log" style="color: var(--fg); font-weight: bold;">None</span></p>
+    </div>
+
+    
+    
+    <script type="module">
+        import { initTitan } from '../titan.js';
+        
+        async function run() {
+            const Titan = await initTitan();
+            const engine = new Titan();
+            
+            // Isolate sheets for each section
+            const sheet1 = engine.addSheet("Section1");
+            const sheet2 = engine.addSheet("Section2");
+            const sheet3 = engine.addSheet("Section3");
+            const sheet4 = engine.addSheet("Section4");
+            const sheet5 = engine.addSheet("Section5");
+            const sheet6 = engine.addSheet("Section6");
+
+            // ... SECTION 1 ...
+            const s1_a1 = document.getElementById('s1_a1');
+            const s1_b1 = document.getElementById('s1_b1');
+            const s1_c1_form = document.getElementById('s1_c1_form');
+            const s1_c1_res = document.getElementById('s1_c1_res');
+
+            function updateSec1() {
+                sheet1.set("A1", s1_a1.value || "0");
+                sheet1.set("B1", s1_b1.value || "0");
+                try {
+                    sheet1.set("C1", s1_c1_form.value);
+                    s1_c1_res.value = sheet1.get("C1").display;
+                } catch(e) {
+                    s1_c1_res.value = "Error";
+                }
+            }
+            s1_a1.oninput = updateSec1; s1_b1.oninput = updateSec1; s1_c1_form.oninput = updateSec1;
+            updateSec1();
+
+            // ... SECTION 2 ...
+            const s2_a2 = document.getElementById('s2_a2');
+            const s2_b2 = document.getElementById('s2_b2');
+            const s2_a3 = document.getElementById('s2_a3');
+            const s2_b3 = document.getElementById('s2_b3');
+            const s2_form = document.getElementById('s2_form');
+            const s2_res = document.getElementById('s2_res');
+
+            function updateSec2() {
+                sheet2.set("A2", s2_a2.value);
+                sheet2.set("B2", s2_b2.value); 
+                sheet2.set("A3", s2_a3.value);
+                sheet2.set("B3", s2_b3.value); 
+                try {
+                    sheet2.set("A4", s2_form.value);
+                    s2_res.value = sheet2.get("A4").display;
+                } catch(e) {
+                    s2_res.value = "Error";
+                }
+            }
+            s2_a2.oninput = updateSec2; s2_b2.oninput = updateSec2; s2_a3.oninput = updateSec2; s2_b3.oninput = updateSec2; s2_form.oninput = updateSec2;
+            updateSec2();
+
+            // ... SECTION 3 ...
+            const s3_d1 = document.getElementById('s3_d1');
+            const s3_d2 = document.getElementById('s3_d2');
+            const s3_d3 = document.getElementById('s3_d3');
+            const s3_e1_form = document.getElementById('s3_e1_form');
+            const s3_e1_res = document.getElementById('s3_e1_res');
+            const s3_e2_res = document.getElementById('s3_e2_res');
+            const s3_e3_res = document.getElementById('s3_e3_res');
+
+            function updateSec3() {
+                sheet3.set("D1", s3_d1.value || "0"); 
+                sheet3.set("D2", s3_d2.value || "0"); 
+                sheet3.set("D3", s3_d3.value || "0"); 
+                
+                try {
+                    sheet3.set("E1", s3_e1_form.value); 
+                    s3_e1_res.value = sheet3.get("E1").display;
+                    s3_e2_res.value = sheet3.get("E2").display;
+                    s3_e3_res.value = sheet3.get("E3").display;
+                } catch(e) {
+                    s3_e1_res.value = "Error";
+                }
+            }
+            s3_d1.oninput = updateSec3; s3_d2.oninput = updateSec3; s3_d3.oninput = updateSec3; s3_e1_form.oninput = updateSec3;
+            updateSec3();
+
+            // ... SECTION 4 (Zero Copy Viewport) ...
+            const zc_grid = document.getElementById('zc_grid');
+            const zc_cells = [];
+            for (let i = 0; i < 256; i++) {
+                const div = document.createElement('div');
+                div.className = 'bg-surface-container-lowest h-6 flex items-center justify-center overflow-hidden text-[11px] w-10';
+                zc_grid.appendChild(div);
+                zc_cells.push(div);
+            }
+
+            const viewport = sheet4.createViewport();
+
+            document.getElementById('runZeroCopy').onclick = () => {
+                const start = performance.now();
+                
+                // Build a 2D array and use the high-level setRange API
+                const data = [];
+                for(let r=0; r<16; r++) {
+                    const row = [];
+                    for(let c=0; c<16; c++) {
+                        row.push(String((r+1) * (c+1)));
+                    }
+                    data.push(row);
+                }
+                sheet4.setRange({row: 10, col: 10}, data);
+                
+                // Use the Viewport for ultra-fast reading
+                for (let r = 0; r < 16; r++) {
+                    for (let c = 0; c < 16; c++) {
+                        const cell = viewport.getCell(10+r, 10+c);
+                        const div = zc_cells[(r * 16) + c];
+                        if (cell.type === 1) div.innerText = cell.value;
+                        else div.innerText = "";
+                    }
+                }
+                document.getElementById('zc_perf').innerText = `${(performance.now() - start).toFixed(2)} ms`;
+            };
+
+            // --- SECTION 5 LOGIC (Structural Mutation + Formula Shifting) ---
+            sheet5.set("A1", "10.0");
+            sheet5.set("A2", "20.0");
+            sheet5.set("A3", "=SUM(A1:A2)");
+
+            let formulaRow = 2; // Track where the formula is for UI labels (0-indexed)
+            let actionStack = [];
+
+            function renderStructGrid() {
+                const grid = document.getElementById('struct_grid');
+                grid.innerHTML = `
+                    <div class="bg-surface-container-low text-text-secondary font-medium py-1.5 px-2 text-center text-xs">Grid</div>
+                    <div class="bg-surface-container-low text-text-secondary font-medium py-1.5 px-2 text-center text-xs">Col A (Val)</div>
+                    <div class="bg-surface-container-low text-text-secondary font-medium py-1.5 px-2 text-center text-xs">Col B (Type)</div>
+                `;
+                
+                let maxRow = Math.max(3, formulaRow + 1);
+                for(let r=0; r<=maxRow; r++) {
+                    let val = sheet5.get({row: r, col: 0}).display;
+                    grid.innerHTML += `
+                        <div class="bg-surface-container-low text-text-secondary font-medium py-1.5 px-2 text-center text-xs">Row ${r}</div>
+                        <div class="bg-surface-container-lowest py-1.5 px-2 text-center text-xs text-text-primary" id="sm_r${r}_c0">${val === "" ? "" : val}</div>
+                        <div class="bg-surface-container-lowest py-1.5 px-2 text-center text-xs text-text-primary" style="font-size: 0.8em; color: #888;" id="sm_r${r}_type">${val === "" ? "" : "Value"}</div>
+                    `;
+                }
+                
+                // Show the formula dynamically shifting
+                let typeCell = document.getElementById(`sm_r${formulaRow}_type`);
+                let valCell = document.getElementById(`sm_r${formulaRow}_c0`);
+                if (typeCell && valCell) {
+                    typeCell.innerText = `=SUM(A1:A${formulaRow})`;
+                    valCell.style.fontWeight = 'bold';
+                    valCell.style.color = '#0066cc';
+                }
+            }
+            renderStructGrid();
+
+            document.getElementById('runInsert').onclick = () => {
+                sheet5.insertRow(1);
+                formulaRow += 1; 
+                actionStack.push('insert');
+                renderStructGrid();
+            };
+
+            document.getElementById('runPopulate').onclick = () => {
+                sheet5.set({row: 1, col: 0}, "50.0");
+                actionStack.push('set');
+                renderStructGrid();
+            };
+
+            document.getElementById('runUndo').onclick = () => {
+                if (actionStack.length === 0) return;
+                try {
+                    engine.undo();
+                    let lastAction = actionStack.pop();
+                    if (lastAction === 'insert') {
+                        formulaRow -= 1;
+                    }
+                    renderStructGrid();
+                } catch(e) {
+                    console.warn(e);
+                }
+            };
+
+            // --- SECTION 6 ---
+            const logEl = document.getElementById('s6_delta_log');
+
+            // Initialize sheet
+            sheet6.set("A1", "10");
+            sheet6.set("B1", "=A1*2");
+            sheet6.set("C1", "=B1*3");
+            sheet6.set("A2", "50"); // Independent
+
+            // Render React Mini Grid
+            import('react').then(React => {
+                import('react-dom/client').then(({ createRoot }) => {
+                    import('@glideapps/glide-data-grid').then(({ DataEditor, GridCellKind }) => {
+                        import('htm').then(htmModule => {
+                            const htm = htmModule.default;
+                            const htmlReact = htm.bind(React.createElement);
+                            
+                            function MiniGrid() {
+                                const [updateTrigger, setUpdateTrigger] = React.useState(0);
+                                const cellInputs = React.useRef({
+                                    0: {0: "10", 1: "=A1*2", 2: "=B1*3"},
+                                    1: {0: "50"}
+                                });
+
+                                React.useEffect(() => {
+                                    const unsubscribe = engine.onCellsChanged((changes) => {
+                                        let changedLog = [];
+                                        let needsUpdate = false;
+                                        for (const change of changes) {
+                                            if (change.sheetId === sheet6.id) {
+                                                changedLog.push(change.a1);
+                                                needsUpdate = true;
+                                            }
+                                        }
+                                        if (changedLog.length > 0) {
+                                            logEl.innerText = changedLog.join(", ");
+                                        }
+                                        if (needsUpdate) {
+                                            setUpdateTrigger(prev => prev + 1);
+                                        }
+                                    });
+                                    return () => unsubscribe();
+                                }, []);
+
+                                const columns = React.useMemo(() => [
+                                    { title: "A", id: "col_0", width: 80 },
+                                    { title: "B", id: "col_1", width: 80 },
+                                    { title: "C", id: "col_2", width: 80 }
+                                ], []);
+
+                                const getCellContent = React.useCallback(([col, row]) => {
+                                    const cell = sheet6.get({row, col});
+                                    let data = cellInputs.current[row]?.[col] || cell.display;
+                                    return {
+                                        kind: GridCellKind.Text,
+                                        allowOverlay: true,
+                                        displayData: cell.display.toString(),
+                                        data: data.toString(),
+                                        readonly: false,
+                                    };
+                                }, [updateTrigger]);
+
+                                const onCellEdited = React.useCallback((cell, newValue) => {
+                                    const [col, row] = cell;
+                                    const val = newValue.data;
+                                    if (!cellInputs.current[row]) cellInputs.current[row] = {};
+                                    cellInputs.current[row][col] = val;
+                                    sheet6.set({row, col}, val);
+                                }, []);
+
+                                return htmlReact`
+                                    <div style=${{ border: '1px solid var(--border)', width: 'max-content', marginTop: '16px' }}>
+                                        <${DataEditor}
+                                            columns=${columns}
+                                            rows=${3}
+                                            getCellContent=${getCellContent}
+                                            onCellEdited=${onCellEdited}
+                                            rowMarkers="none"
+                                            height=${150}
+                                            width=${242}
+                                        />
+                                    </div>
+                                `;
+                            }
+
+                            const root = createRoot(document.getElementById('mini-grid-root'));
+                            root.render(htmlReact`<${MiniGrid} />`);
+                        });
+                    });
+                });
+            });
+        }
+        
+        run();
+    </script>
+
+
+    <div id="portal" style="position: fixed; top: 0; left: 0; z-index: 9999;"></div>
+</main>
+</body>
+</html>

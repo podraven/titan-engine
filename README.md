@@ -6,6 +6,24 @@ It exists because I wanted something that could recalculate large sheets without
 
 The project borrows ideas from existing spreadsheet engines, but it prioritizes browser performance over strict 1:1 compatibility with Excel internals.
 
+## 🔗 Quick Links
+
+| Resource | Link |
+|----------|------|
+| 📚 **Documentation** | https://podraven.github.io/titan-engine/ |
+| ✨ **Request Feature + Bug report** | https://github.com/podraven/titan-engine/issues |
+| ⚡ **Benchmark** | https://podraven.github.io/titan-engine/benchmark.html |
+
+## Installation
+
+Install the package via NPM:
+
+```bash
+npm install titan-engine
+```
+
+[![npm version](https://badge.fury.io/js/titan-engine.svg)](https://badge.fury.io/js/titan-engine)
+
 ## Usage
 
 The `TitanJS` wrapper abstracts the WebAssembly pointers and provides A1 notation. It includes an event subscription model for UI updates.
@@ -13,7 +31,7 @@ The `TitanJS` wrapper abstracts the WebAssembly pointers and provides A1 notatio
 ### Initialization & Sheet Management
 
 ```javascript
-import { initTitan } from './titan.js';
+import { initTitan } from 'titan-engine';
 
 const Titan = await initTitan();
 const engine = new Titan();
@@ -80,13 +98,6 @@ const viewport = sheet1.createViewport();
 const { type, value } = viewport.getCell(150, 20); 
 ```
 
-## Examples
-
-Check out the live interactive examples included in this repository:
-
-- **[Basic Example](examples/basic-example.html)** - Basic parsing, zero-copy memory reads, formula recalculations, and structural mutations.
-- **[Glide Data Grid Integration](examples/glide-example.html)** - A React spreadsheet UI using Glide Data Grid. Demonstrates cross-sheet references, bulk CSV pasting, and dynamic grid expansion.
-- **[Performance Benchmark](examples/benchmark.html)** - A head-to-head performance benchmark comparing Titan to HyperFormula across memory allocation, lazy evaluation, and structural mutations.## Design Decisions
 
 ## Design Decisions
 

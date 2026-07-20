@@ -93,7 +93,10 @@ export class Titan {
     }
 
     setCells(updates) {
+        console.log(`[TitanJS] setCells called with ${updates.length} updates`);
         this.engine.begin_batch();
+        let rustTime = 0;
+        let jsTime = 0;
         try {
             for (const update of updates) {
                 const sheet = this.getSheet(update.sheet);
@@ -103,19 +106,42 @@ export class Titan {
                 }
             }
         } finally {
+            const t1 = performance.now();
             const deltas = this.engine.end_batch();
+            const t2 = performance.now();
+            rustTime = t2 - t1;
+            
             this._triggerChange(deltas);
+            const t3 = performance.now();
+            jsTime = t3 - t2;
+            console.log(`[Perf] Rust end_batch: ${rustTime.toFixed(2)}ms | JS _triggerChange: ${jsTime.toFixed(2)}ms | Deltas: ${deltas ? deltas.length / 3 : 0}`);
+            return rustTime + jsTime;
         }
     }
 
     undo() {
+        console.log(`[TitanJS] undo called`);
+        const t1 = performance.now();
         const deltas = this.engine.undo();
+        const t2 = performance.now();
+        const rustTime = t2 - t1;
         this._triggerChange(deltas);
+        const t3 = performance.now();
+        const jsTime = t3 - t2;
+        console.log(`[Perf] Rust undo: ${rustTime.toFixed(2)}ms | JS _triggerChange: ${jsTime.toFixed(2)}ms`);
+        return rustTime + jsTime;
     }
 
     redo() {
+        const t1 = performance.now();
         const deltas = this.engine.redo();
+        const t2 = performance.now();
+        const rustTime = t2 - t1;
         this._triggerChange(deltas);
+        const t3 = performance.now();
+        const jsTime = t3 - t2;
+        console.log(`[Perf] Rust redo: ${rustTime.toFixed(2)}ms | JS _triggerChange: ${jsTime.toFixed(2)}ms`);
+        return rustTime + jsTime;
     }
 }
 
@@ -128,18 +154,27 @@ export class Sheet {
 
     set(cellRef, value) {
         const {row, col} = resolveRef(cellRef);
-        const deltas = this.titan.engine.set_cell(this.id, row, col, String(value));
+        this.titan.engine.begin_batch();
+        const t1 = performance.now();
+        this.titan.engine.set_cell(this.id, row, col, String(value));
+        const deltas = this.titan.engine.end_batch();
+        const t2 = performance.now();
+        const rustTime = t2 - t1;
         this.titan._triggerChange(deltas);
+        const t3 = performance.now();
+        const jsTime = t3 - t2;
+        return rustTime + jsTime;
     }
 
     get(cellRef) {
         const {row, col} = resolveRef(cellRef);
         const display = this.titan.engine.get_value_string(this.id, row, col);
+        const raw_input = this.titan.engine.get_raw_input(this.id, row, col);
         // For simplicity, we expose the formatted string.
         // Complex objects can be built by expanding WASM exports or Viewports later.
         return {
             display,
-            value: display
+            value: raw_input != null ? raw_input : display
         };
     }
 

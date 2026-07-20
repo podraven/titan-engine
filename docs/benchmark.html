@@ -3,97 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Titan vs HyperFormula Benchmark</title>
-    
-    <style>
+    <title>Benchmarks | Titan Engine</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+            <style>
         :root {
-            --bg: #ffffff;
-            --fg: #333333;
-            --muted: #f9f9f9;
-            --muted-fg: #888888;
-            --border: #eaeaea;
-            --accent: #0066cc;
+            --primary-yellow: #ffe84d;
+            --bg-main: #f9f9f9;
+            --surface-card: #ffffff;
+            --on-surface: #1a1c1c;
+            --outline: #1a1c1c;
         }
-        body { 
-            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--fg);
-            background: var(--bg);
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            -webkit-font-smoothing: antialiased;
-        }
-        h1, h2, h3 { font-weight: normal; margin: 0; color: #111; }
-        h1 { font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 32px; }
-        h2 { font-size: 14px; margin-top: 32px; margin-bottom: 16px; }
+        body { font-family: 'Geist', sans-serif; background-color: var(--bg-main); color: var(--on-surface); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        pre, code, .font-mono, .time { font-family: 'JetBrains Mono', monospace; }
         
-        .section, .card, .sheet-container { margin-bottom: 32px; border: 1px solid var(--border); padding: 24px; }
+        .runner { margin-bottom: 2rem; border: 1px solid var(--outline); border-radius: 8px; overflow: hidden; background: var(--surface-card);}
+        .runner-header { background: #f3f3f3; padding: 1rem 1.5rem; font-weight: 600; border-bottom: 1px solid var(--outline); display: flex; justify-content: space-between; font-size: 1.1rem; }
+        .runner-body { padding: 1.5rem; }
+        .btn { padding: 0.5rem 1.25rem; font-weight: 600; background: var(--primary-yellow); color: #6b5f00; border: 1px solid var(--outline); border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.1s;}
+        .btn:hover { background: #fbe449; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.875rem; background: var(--surface-card); border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--outline); }
+        th, td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--outline); text-align: left; }
+        th { font-weight: 500; color: #5e5e5e; background-color: #f3f3f3; }
+        td { color: var(--on-surface); }
         
-        .btn, button {
-            background: transparent;
-            border: 1px solid #ccc;
-            color: var(--fg);
-            padding: 4px 12px;
-            font-family: inherit;
-            font-size: 12px;
-            cursor: pointer;
-            transition: border-color 0.1s;
-            margin-right: 8px;
-            margin-bottom: 8px;
-        }
-        .btn:hover, button:hover { border-color: var(--fg); }
-        .btn:disabled, button:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border); }
+        .result-row { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px dashed var(--outline); padding: 0.75rem 0; }
+        .result-row:last-child { border-bottom: none; }
         
-        .btn-secondary { border-color: #ccc; }
+        .winner { color: #007372; font-weight: 600; }
+        .loser { color: #ba1a1a; font-weight: 600; }
         
-        input[type="number"], input[type="text"] {
-            font-family: inherit;
-            font-size: 12px;
-            padding: 4px 8px;
-            border: 1px solid #ccc;
-            background: var(--bg);
-            color: var(--fg);
-            width: 120px;
-            box-sizing: border-box;
-            transition: border-color 0.1s;
-        }
-        input:focus { outline: none; border-color: var(--fg); }
-        input.readonly { background: var(--muted); color: var(--muted-fg); border-color: var(--border); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .text-muted { color: #5e5e5e; font-size: 0.9em; }
         
-        p, .info { color: var(--muted-fg); margin-bottom: 16px; }
-        
-        /* Table Styles (Benchmark) */
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; }
-        th, td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
-        th { font-weight: normal; color: var(--muted-fg); }
-        .winner { color: #2e8b57; }
-        .loser { color: #b22222; }
-        
-        /* Logs */
-        .log { background: var(--muted); padding: 16px; border: 1px solid var(--border); overflow-y: auto; height: auto; font-size: 12px; color: var(--fg); white-space: pre-wrap; }
-        
-        /* Basic Example Specific */
-        .row { display: flex; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 12px; }
-        .cell-group { display: flex; align-items: center; gap: 8px;}
-        label { font-size: 12px; color: var(--muted-fg); }
-        .wide-input { width: 280px !important; }
-        
-        .grid { display: grid; grid-template-columns: repeat(16, 40px); gap: 1px; background: var(--border); border: 1px solid var(--border); padding: 1px; width: max-content; margin-top: 16px; }
-        .grid-cell { background: var(--bg); height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 11px; }
-        
-        .struct-grid { display: grid; grid-template-columns: 80px 100px 140px; gap: 1px; background: var(--border); border: 1px solid var(--border); width: max-content; margin-top: 16px; }
-        .struct-cell { background: var(--bg); padding: 6px 8px; text-align: center; font-size: 12px; }
-        .struct-header { background: var(--muted); color: var(--muted-fg); }
-        
-        /* Glide Example Specific */
-        .sheet-header { font-size: 14px; font-weight: normal; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; color: #111; }
-        .header-controls button { margin-left: 8px; margin-bottom: 0; }
+        .log { background: #f3f3f3; padding: 1rem; border: 1px solid var(--outline); overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--on-surface); border-radius: 0.5rem; margin-top: 1rem; margin-bottom: 2rem;}
     </style>
+    <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#eeeeee",
+            "on-surface-variant": "#4b4734",
+            "surface-container-low": "#f3f3f3",
+            "surface-tint": "#6b5f00",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#646464",
+            "inverse-primary": "#ddc82d",
+            "primary-fixed-dim": "#ddc82d",
+            "on-secondary": "#ffffff",
+            "surface-container-high": "#e8e8e8",
+            "on-primary-container": "#746700",
+            "inverse-on-surface": "#f1f1f1",
+            "surface-variant": "#e2e2e2",
+            "on-primary-fixed-variant": "#504700",
+            "on-primary-fixed": "#201c00",
+            "tertiary-fixed": "#34fbf8",
+            "secondary-fixed": "#e2e2e2",
+            "surface-dim": "#dadada",
+            "primary-fixed": "#fbe449",
+            "on-tertiary": "#ffffff",
+            "primary": "#6b5f00",
+            "on-tertiary-fixed": "#00201f",
+            "on-secondary-fixed": "#1b1b1b",
+            "on-background": "#1a1c1c",
+            "on-primary": "#201c00",
+            "on-error": "#ffffff",
+            "secondary-container": "#e2e2e2",
+            "on-tertiary-container": "#007372",
+            "background": "#f9f9f9",
+            "on-tertiary-fixed-variant": "#00504f",
+            "on-surface": "#1a1c1c",
+            "outline-variant": "#1a1c1c",
+            "surface": "#f9f9f9",
+            "surface-bright": "#f9f9f9",
+            "secondary": "#5e5e5e",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "inverse-surface": "#2f3131",
+            "tertiary-fixed-dim": "#00ddda",
+            "outline": "#1a1c1c",
+            "tertiary-container": "#3cfffc",
+            "tertiary": "#006a68",
+            "primary-container": "#ffe84d",
+            "on-secondary-fixed-variant": "#474747",
+            "on-error-container": "#93000a",
+            "secondary-fixed-dim": "#c6c6c6",
+            "surface-container-highest": "#e2e2e2",
+            "text-primary": "#1a1c1c",
+            "text-secondary": "#4b4734",
+            "text-muted": "#5e5e5e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "16px",
+            "margin-desktop": "48px",
+            "gutter": "16px",
+            "unit": "4px",
+            "container-max": "1280px",
+            "xl": "80px",
+            "md": "24px"
+          },
+          "fontFamily": {
+            "headline-lg": ["Geist"],
+            "data-mono": ["JetBrains Mono"],
+            "label-caps": ["Geist"],
+            "body-md": ["Geist"],
+            "body-lg": ["Geist"],
+            "headline-lg-mobile": ["Geist"],
+            "headline-md": ["Geist"],
+            "mono-label": ["JetBrains Mono"],
+            "mono-data": ["JetBrains Mono"],
+            "button-text": ["Geist"]
+          },
+          "fontSize": {
+            "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+            "data-mono": ["13px", {"lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "600"}],
+            "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+            "button-text": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+    </script>
+
+    <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#eeeeee",
+            "on-surface-variant": "#4b4734",
+            "surface-container-low": "#f3f3f3",
+            "surface-tint": "#6b5f00",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#646464",
+            "inverse-primary": "#ddc82d",
+            "primary-fixed-dim": "#ddc82d",
+            "on-secondary": "#ffffff",
+            "surface-container-high": "#e8e8e8",
+            "on-primary-container": "#746700",
+            "inverse-on-surface": "#f1f1f1",
+            "surface-variant": "#e2e2e2",
+            "on-primary-fixed-variant": "#504700",
+            "on-primary-fixed": "#201c00",
+            "tertiary-fixed": "#34fbf8",
+            "secondary-fixed": "#e2e2e2",
+            "surface-dim": "#dadada",
+            "primary-fixed": "#fbe449",
+            "on-tertiary": "#ffffff",
+            "primary": "#6b5f00",
+            "on-tertiary-fixed": "#00201f",
+            "on-secondary-fixed": "#1b1b1b",
+            "on-background": "#1a1c1c",
+            "on-primary": "#201c00",
+            "on-error": "#ffffff",
+            "secondary-container": "#e2e2e2",
+            "on-tertiary-container": "#007372",
+            "background": "#f9f9f9",
+            "on-tertiary-fixed-variant": "#00504f",
+            "on-surface": "#1a1c1c",
+            "outline-variant": "#1a1c1c",
+            "surface": "#f9f9f9",
+            "surface-bright": "#f9f9f9",
+            "secondary": "#5e5e5e",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "inverse-surface": "#2f3131",
+            "tertiary-fixed-dim": "#00ddda",
+            "outline": "#1a1c1c",
+            "tertiary-container": "#3cfffc",
+            "tertiary": "#006a68",
+            "primary-container": "#ffe84d",
+            "on-secondary-fixed-variant": "#474747",
+            "on-error-container": "#93000a",
+            "secondary-fixed-dim": "#c6c6c6",
+            "surface-container-highest": "#e2e2e2",
+            "text-primary": "#1a1c1c",
+            "text-secondary": "#4b4734",
+            "text-muted": "#5e5e5e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "16px",
+            "margin-desktop": "48px",
+            "gutter": "16px",
+            "unit": "4px",
+            "container-max": "1280px",
+            "xl": "80px",
+            "md": "24px"
+          },
+          "fontFamily": {
+            "headline-lg": ["Geist"],
+            "data-mono": ["JetBrains Mono"],
+            "label-caps": ["Geist"],
+            "body-md": ["Geist"],
+            "body-lg": ["Geist"],
+            "headline-lg-mobile": ["Geist"],
+            "headline-md": ["Geist"],
+            "mono-label": ["JetBrains Mono"],
+            "mono-data": ["JetBrains Mono"],
+            "button-text": ["Geist"]
+          },
+          "fontSize": {
+            "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+            "data-mono": ["13px", {"lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "600"}],
+            "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+            "button-text": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+    </script>
+
     <script type="importmap">
     {
       "imports": {
@@ -102,14 +249,35 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.4.0/dist/hyperformula.full.min.js"></script>
 </head>
-<body>
-    <a href="index.html" style="display: inline-block; margin-bottom: 20px; color: var(--muted-fg); text-decoration: none; ">&larr; Back to Examples Page</a>
+<body class="bg-background text-on-surface selection:bg-primary-container/40 min-h-screen flex flex-col">
+    <header class="bg-surface-container-lowest border-b border-outline w-full top-0 sticky z-50">
+        <div class="flex justify-between items-center h-16 px-8 max-w-7xl mx-auto">
+            <a href="index.html" class="text-2xl font-bold text-on-surface">Titan Engine</a>
+            <nav class="hidden md:flex items-center gap-8 font-medium">
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="getting-started.html" style="text-decoration:none;">Getting Started</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors font-medium" href="basic-example.html" style="text-decoration:none;">Examples</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="glide-integration.html" style="text-decoration:none;">Glide Integration</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="formulas.html" style="text-decoration:none;">Formulas</a>
+                <a class="text-text-secondary hover:text-on-surface transition-colors" href="benchmark.html" style="text-decoration:none;">Benchmarks</a>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="flex-grow max-w-4xl mx-auto px-8 py-16 w-full">
+        <h1 class="font-headline-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight mb-6">Titan vs HyperFormula Benchmark</h1>
+        <p class="font-body-lg text-body-lg text-text-secondary mb-8 leading-relaxed">
+            Live, in-browser execution tests comparing Titan (WASM) against HyperFormula (JS).
+        </p>
 
-    <h1>Titan vs HyperFormula Benchmark</h1>
-    <p>This benchmark pits Titan's Rust/WASM engine directly against HyperFormula (the JS engine behind Handsontable). All tests run locally in your browser.</p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-12 flex items-start gap-3">
+            <span class="material-symbols-outlined text-yellow-700">warning</span>
+            <div class="text-sm text-yellow-800 leading-relaxed">
+                <strong>Important:</strong> Benchmarks running in the browser can vary significantly based on CPU, battery mode, and browser extension interference. Ensure DevTools is closed for accurate execution timing.
+            </div>
+        </div>
 
-    <div class="card">
-        <button id="runAll" class="btn">Run All Benchmarks</button>
+    <div class="card bg-surface-container-lowest border border-outline rounded-lg p-6 shadow-sm">
+        <button id="runAll" class="btn text-yellow-900">Run All Benchmarks</button>
         <div id="status" class="log">Ready to run...</div>
 
         <table id="resultsTable">
@@ -196,6 +364,13 @@
             </tbody>
         </table>
     </div>
+
+        <div class="flex justify-between items-center pt-8 border-t border-gray-200 mt-8">
+            <a href="formulas.html" class="inline-flex items-center gap-2 text-text-secondary hover:text-on-surface font-semibold px-4 py-2 transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span> Formulas
+            </a>
+            <div></div>
+        </div>
 
     <script type="module">
                 import { initTitan } from '../titan.js';
@@ -579,5 +754,6 @@
 
         document.getElementById('runAll').onclick = runBenchmarks;
     </script>
+</main>
 </body>
 </html>
